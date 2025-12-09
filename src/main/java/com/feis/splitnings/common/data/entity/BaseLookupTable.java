@@ -9,6 +9,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BaseLookupTable extends BaseEntity {
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
+
+    // Human-readable description
+    @Column(name = "description", nullable = false)
+    private String description;
 }

@@ -1,5 +1,7 @@
 package com.feis.splitnings.features.user.data;
 
+import java.time.Instant;
+
 import com.feis.splitnings.common.data.entity.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -27,6 +29,10 @@ public class User extends BaseEntity {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "external_id", nullable = false)
+    @Column(name = "external_id", nullable = false, unique = true)
     private String externalId;
+
+    @Column(name = "last_login", nullable = false)
+    private Instant lastLogin;
 }
+

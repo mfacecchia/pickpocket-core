@@ -1,6 +1,7 @@
 package com.feis.splitnings.features.user.mapper;
 
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
 import com.feis.splitnings.common.mapper.BaseMapper;
 import com.feis.splitnings.features.user.data.User;
@@ -9,6 +10,7 @@ import com.feis.splitnings.features.user.data.dto.request.UserUpdateDto;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.data.dto.response.UserPageDto;
 
+@Component
 public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, UserUpdateDto, UserPageDto> {
 
     @Override

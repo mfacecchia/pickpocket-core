@@ -8,7 +8,7 @@ import lombok.Setter;
 @MappedSuperclass
 @Getter
 @Setter
-public class BaseEntityWithImage extends BaseEntity {
+public class BaseFileEntity extends BaseEntity {
     @Column(name = "file_name", nullable = true)
     private String filename;
 }

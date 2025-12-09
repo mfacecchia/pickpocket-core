@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.feis.splitnings.common.data.dto.BasePageDto;
-import com.feis.splitnings.common.data.entity.BaseEntityWithImage;
+import com.feis.splitnings.common.data.entity.BaseFileEntity;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 
 import lombok.SneakyThrows;
 
-public abstract class AbstractFileService<ENTITY extends BaseEntityWithImage, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO extends BasePageDto<GET_DTO>, PK_TYPE>
+public abstract class AbstractFileService<ENTITY extends BaseFileEntity, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO extends BasePageDto<GET_DTO>, PK_TYPE>
     extends AbstractService<ENTITY, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO, PK_TYPE> {
 
         abstract String upload(MultipartFile file);

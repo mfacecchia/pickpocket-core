@@ -1,8 +1,10 @@
 package com.feis.splitnings.features.goal.data;
 
-import java.time.Instant;
-
 import com.feis.splitnings.common.data.entity.BaseEntity;
+
+import org.hibernate.envers.Audited;
+
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +17,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Audited
 @Entity(name = "goal")
 public class Goal extends BaseEntity {
     @Column(name = "name", nullable = false)
@@ -26,7 +29,7 @@ public class Goal extends BaseEntity {
     @Column(name = "current_amount", nullable = false)
     private Double currentAmount;
 
-    @Column(name = "completed_at", nullable = true)
+    @Column(name = "completed_at", nullable = false)
     private Instant completedAt;
 
     @Column(name = "icon", nullable = false)

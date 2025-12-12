@@ -4,6 +4,8 @@ import com.feis.splitnings.common.data.entity.BaseEntity;
 import com.feis.splitnings.features.attachment.data.Attachment;
 import com.feis.splitnings.features.purchase.data.Purchase;
 
+import org.hibernate.envers.Audited;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,6 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Audited
 @Entity(name = "purchase_attachment")
 public class PurchaseAttachment extends BaseEntity {
     @JoinColumn(name = "purchase_id", nullable = false)

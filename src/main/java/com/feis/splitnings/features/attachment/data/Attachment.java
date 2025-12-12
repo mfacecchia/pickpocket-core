@@ -2,6 +2,8 @@ package com.feis.splitnings.features.attachment.data;
 
 import com.feis.splitnings.common.data.entity.BaseEntity;
 
+import org.hibernate.envers.Audited;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Audited
 @Entity(name = "attachment")
 public class Attachment extends BaseEntity {
     @Column(name = "file_name", nullable = false)

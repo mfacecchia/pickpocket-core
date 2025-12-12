@@ -1,5 +1,7 @@
 package com.feis.splitnings.common.data.entity;
 
+import org.hibernate.envers.Audited;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,11 +13,10 @@ import lombok.Setter;
 @MappedSuperclass
 @Getter
 @Setter
+@Audited
 public class BaseEntity extends BaseAuditingEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    protected Integer id;
-
+    private Integer id;
 }

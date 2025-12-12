@@ -1,8 +1,11 @@
 package com.feis.splitnings.features.user.data;
 
+import com.feis.splitnings.common.data.entity.BaseEntity;
+
 import java.time.Instant;
 
-import com.feis.splitnings.common.data.entity.BaseEntity;
+import org.hibernate.envers.Audited;
+
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Audited
 @Entity(name = "user")
 public class User extends BaseEntity {
     @Column(name = "first_name", nullable = false)

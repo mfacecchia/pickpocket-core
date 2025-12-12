@@ -1,10 +1,12 @@
 package com.feis.splitnings.features.readNotification.data;
 
-import java.time.Instant;
-
 import com.feis.splitnings.common.data.entity.BaseEntity;
 import com.feis.splitnings.features.notification.data.Notification;
 import com.feis.splitnings.features.user.data.User;
+
+import java.time.Instant;
+
+import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Audited
 @Entity(name = "read_notification")
 public class ReadNotification extends BaseEntity {
     @Column(name = "read_at", nullable = false)

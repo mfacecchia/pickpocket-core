@@ -31,7 +31,7 @@ public class ReadNotification extends BaseEntity {
     @ManyToOne
     private Notification notification;
 
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;
 }

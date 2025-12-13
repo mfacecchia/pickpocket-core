@@ -29,7 +29,7 @@ public class Goal extends BaseEntity {
     @Column(name = "current_amount", nullable = false)
     private Double currentAmount;
 
-    @Column(name = "completed_at", nullable = false)
+    @Column(name = "completed_at", nullable = true)
     private Instant completedAt;
 }
 

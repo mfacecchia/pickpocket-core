@@ -31,11 +31,5 @@ public class Goal extends BaseEntity {
 
     @Column(name = "completed_at", nullable = false)
     private Instant completedAt;
-
-    @Column(name = "icon", nullable = false)
-    private String icon;
-
-    @Column(name = "icon_color", nullable = false)
-    private String iconColor;
 }
 

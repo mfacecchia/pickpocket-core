@@ -30,12 +30,6 @@ public class Account extends BaseEntity {
     @Column(name = "wealth", nullable = false)
     private Double wealth;
 
-    @Column(name = "icon", nullable = false)
-    private String icon;
-
-    @Column(name = "icon_color", nullable = false)
-    private String iconColor;
-
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;

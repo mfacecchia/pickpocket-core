@@ -36,12 +36,6 @@ public class Split extends BaseEntity {
     @Column(name = "active", nullable = false)
     private Boolean active;
 
-    @Column(name = "icon", nullable = false)
-    private String icon;
-
-    @Column(name = "icon_color", nullable = false)
-    private String iconColor;
-
     @JoinColumn(name = "account_id", nullable = false)
     @ManyToOne
     private Account account;

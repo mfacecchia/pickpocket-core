@@ -6,7 +6,9 @@ import com.feis.splitnings.security.mapper.JwtMapper;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Component;
 
+@Component
 public class JwtConverter implements Converter<Jwt, AuthenticationToken> {
     @Override
     public AuthenticationToken convert(Jwt jwt) {

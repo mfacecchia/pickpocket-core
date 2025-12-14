@@ -8,18 +8,18 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 public class SecurityUtils {
 
-    public static Jwt getCurrentJwt() {
+    public static Jwt getJwt() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (Jwt) authentication.getCredentials();
     }
 
-    public static JwtDto getCurrentJwtDto() {
+    public static JwtDto getJwtDto() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (JwtDto) authentication.getPrincipal();
     }
 
-    public static String getCurrentJwtValue() {
-        Jwt jwt = getCurrentJwt();
+    public static String getJwtValue() {
+        Jwt jwt = getJwt();
         return jwt.getTokenValue();
     }
 }

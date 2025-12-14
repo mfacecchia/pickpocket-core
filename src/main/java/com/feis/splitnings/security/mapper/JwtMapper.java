@@ -9,10 +9,10 @@ public class JwtMapper {
     public static JwtDto mapToDto(Jwt jwt) {
         JwtDto dto = new JwtDto();
 
-        dto.setUserId(jwt.getClaimAsString("userId"));
-        dto.setFirstName(jwt.getClaimAsString("firstName"));
-        dto.setMiddleName(jwt.getClaimAsString("middleName"));
-        dto.setLastName(jwt.getClaimAsString("lastName"));
+        dto.setUserId(jwt.getClaimAsString("user_id"));
+        dto.setFirstName(jwt.getClaimAsString("given_name"));
+        dto.setMiddleName(jwt.getClaimAsString("middle_name"));
+        dto.setLastName(jwt.getClaimAsString("family_name"));
         dto.setFullName(jwt.getClaimAsString("name"));
         dto.setEmail(jwt.getClaimAsString("email"));
 

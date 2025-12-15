@@ -1,10 +1,10 @@
 package com.feis.splitnings.common.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 import com.feis.splitnings.common.exception.model.Error;
 import com.feis.splitnings.common.exception.model.InternalErrorCode;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

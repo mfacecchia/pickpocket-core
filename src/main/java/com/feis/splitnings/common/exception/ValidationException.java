@@ -1,11 +1,11 @@
 package com.feis.splitnings.common.exception;
 
+import com.feis.splitnings.common.exception.model.Error;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import com.feis.splitnings.common.exception.model.Error;
 
 import java.util.List;
 

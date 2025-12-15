@@ -11,9 +11,6 @@ import com.feis.splitnings.common.exception.model.InternalErrorCode;
 @ResponseStatus(code = HttpStatus.CONFLICT, value = HttpStatus.CONFLICT)
 public class ConflictException extends BaseException {
 
-    public ConflictException() {
-    }
-
     public ConflictException(String resourceName, String id) {
         String message = String.format("%s with id %s already existing", resourceName, id);
         Error error = new Error(InternalErrorCode.CONFLICT, message);

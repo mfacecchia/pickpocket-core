@@ -6,4 +6,6 @@ import com.feis.splitnings.features.user.data.User;
 public interface UserRepository extends BaseRepository<User, Integer> {
 
     boolean existsByEmail(String email);
+
+    boolean existsByExternalId(String externalId);
 }

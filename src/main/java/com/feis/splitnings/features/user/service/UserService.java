@@ -1,7 +1,6 @@
 package com.feis.splitnings.features.user.service;
 
-import org.springframework.stereotype.Service;
-
+import com.feis.splitnings.common.exception.AlreadyRegisteredException;
 import com.feis.splitnings.common.exception.ConflictException;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.features.user.data.User;
@@ -11,6 +10,9 @@ import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.data.dto.response.UserPageDto;
 import com.feis.splitnings.features.user.mapper.UserMapper;
 import com.feis.splitnings.features.user.repository.UserRepository;
+import com.feis.splitnings.security.utils.SecurityUtils;
+
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService extends AbstractService<User, UserDto, UserCreateDto, UserUpdateDto, UserPageDto, Integer> {
@@ -24,7 +26,12 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
     @Override
     protected void validateCreateDto(UserCreateDto createDto) {
         if (((UserRepository) repository).existsByEmail(createDto.getEmail())) {
-            throw new ConflictException(resourceName, "Email", createDto.getEmail());
+            throw new AlreadyRegisteredException();
+        }
+
+        String externalId = SecurityUtils.getJwtDto().getExternalId();
+        if (((UserRepository) repository).existsByExternalId(externalId)) {
+            throw new AlreadyRegisteredException();
         }
     }
 
@@ -39,5 +46,11 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
     @Override
     protected Integer getResourceId(User entity) {
         return entity.getId();
+    }
+
+    @Override
+    protected void doCreate(User toCreate) {
+        String externalId = SecurityUtils.getJwtDto().getExternalId();
+        toCreate.setExternalId(externalId);
     }
 }

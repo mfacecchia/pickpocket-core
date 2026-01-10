@@ -10,7 +10,7 @@ public class JwtMapper {
         JwtDto dto = new JwtDto();
 
         dto.setUserId(jwt.getClaimAsString("user_id"));
-        dto.setUserId(jwt.getClaimAsString("sub"));
+        dto.setExternalId(jwt.getClaimAsString("sub"));
         dto.setFirstName(jwt.getClaimAsString("given_name"));
         dto.setMiddleName(jwt.getClaimAsString("middle_name"));
         dto.setLastName(jwt.getClaimAsString("family_name"));

@@ -9,6 +9,8 @@ import com.feis.splitnings.features.user.data.dto.request.UserCreateDto;
 import com.feis.splitnings.features.user.data.dto.request.UserUpdateDto;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.data.dto.response.UserPageDto;
+import com.feis.splitnings.security.data.dto.response.JwtDto;
+import com.feis.splitnings.security.utils.SecurityUtils;
 
 @Component
 public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, UserUpdateDto, UserPageDto> {
@@ -95,5 +97,18 @@ public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, User
         updateDto.setEmail(entity.getEmail());
 
         return updateDto;
+    }
+
+    public UserCreateDto mapJwtDtoToCreateDto() {
+        JwtDto jwtDto = SecurityUtils.getJwtDto();
+
+        UserCreateDto createDto = new UserCreateDto();
+        createDto.setEmail(jwtDto.getEmail());
+        createDto.setFirstName(jwtDto.getFirstName());
+        createDto.setMiddleName(jwtDto.getMiddleName());
+        createDto.setLastName(jwtDto.getLastName());
+        createDto.setExternalId(jwtDto.getExternalId());
+
+        return createDto;
     }
 }

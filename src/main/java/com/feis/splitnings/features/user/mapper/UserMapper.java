@@ -24,6 +24,7 @@ public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, User
         entity.setMiddleName(dto.getMiddleName());
         entity.setLastName(dto.getLastName());
         entity.setEmail(dto.getEmail());
+        entity.setLastLogin(dto.getLastLogin());
 
         // Auditing
         entity.setCreatedBy(dto.getCreatedBy());
@@ -44,6 +45,7 @@ public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, User
         dto.setMiddleName(entity.getMiddleName());
         dto.setLastName(entity.getLastName());
         dto.setEmail(entity.getEmail());
+        dto.setLastLogin(entity.getLastLogin());
 
         // Auditing
         dto.setCreatedBy(entity.getCreatedBy());

@@ -56,11 +56,11 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
     @Override
     protected void validateCreateDto(UserCreateDto createDto) {
         if (((UserRepository) repository).existsByEmail(createDto.getEmail())) {
-            throw new AlreadyRegisteredException();
+            throw new AlreadyRegisteredException("Email already exists");
         }
 
         if (((UserRepository) repository).existsByExternalId(createDto.getExternalId())) {
-            throw new AlreadyRegisteredException();
+            throw new AlreadyRegisteredException("ExternalId already exists");
         }
     }
 

@@ -1,20 +1,5 @@
 package com.feis.splitnings.common.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.feis.splitnings.common.data.dto.BasePageDto;
 import com.feis.splitnings.common.data.entity.BaseAuditingEntity;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
@@ -26,6 +11,22 @@ import com.feis.splitnings.common.mapper.BaseMapper;
 import com.feis.splitnings.common.repository.BaseRepository;
 import com.feis.splitnings.common.specification.CommonSpecificationBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
@@ -34,7 +35,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     @Autowired
     protected Validator validator;
 
-    protected static Logger logger;
+    protected static Logger logger = LogManager.getLogger(AbstractService.class);
 
     protected BaseMapper<ENTITY, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO> mapper;
     protected BaseRepository<ENTITY, PK_TYPE> repository;

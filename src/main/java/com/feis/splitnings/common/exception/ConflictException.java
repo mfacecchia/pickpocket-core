@@ -1,12 +1,12 @@
 package com.feis.splitnings.common.exception;
 
+import com.feis.splitnings.common.exception.enums.InternalErrorCode;
+import com.feis.splitnings.common.exception.errors.Error;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import com.feis.splitnings.common.exception.model.Error;
-import com.feis.splitnings.common.exception.model.InternalErrorCode;
 
 @ResponseStatus(code = HttpStatus.CONFLICT, value = HttpStatus.CONFLICT)
 public class ConflictException extends BaseException {

@@ -1,6 +1,6 @@
 package com.feis.splitnings.common.exception;
 
-import com.feis.splitnings.common.exception.model.Error;
+import com.feis.splitnings.common.exception.errors.Error;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +13,7 @@ import java.util.List;
 @Setter
 @ResponseStatus(code = HttpStatus.BAD_REQUEST, value = HttpStatus.BAD_REQUEST)
 public class ValidationException extends BaseException {
+
     public ValidationException() {
     }
 

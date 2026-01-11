@@ -1,6 +1,6 @@
 package com.feis.splitnings.common.exception;
 
-import com.feis.splitnings.common.exception.model.Error;
+import com.feis.splitnings.common.exception.errors.Error;
 
 import java.util.ArrayList;
 import java.util.List;

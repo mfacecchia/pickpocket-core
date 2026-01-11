@@ -1,5 +1,7 @@
 package com.feis.splitnings.features.user.controller;
 
+import com.feis.splitnings.common.data.dto.SuccessResponse;
+import com.feis.splitnings.common.exception.model.ErrorResponse;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.service.UserService;
 
@@ -34,13 +36,22 @@ public class UserController {
     @Operation(summary = "Create a new " + ITEM_NAME)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = ITEM_NAME + " was created", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserDto.class)) })
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = SuccessResponse.class)) }),
+            @ApiResponse(responseCode = "409", description = ITEM_NAME + " is already registered", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "404", description = ITEM_NAME + " with provided external id does not exist", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "500", description = "Generic server error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) })
     })
     @PostMapping
-    public ResponseEntity<UserDto> createUser() {
+    public ResponseEntity<SuccessResponse<UserDto>> createUser() {
         UserDto dto = userService.createFromJwt();
-        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.getId().toString());
-        // TODO: Change respose type to custom DTO
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.toString());
+
+        HttpStatus responseStatus = HttpStatus.CREATED;
+        SuccessResponse<UserDto> response = new SuccessResponse<>(responseStatus.value(), "User created successfully", dto);
+
+        return ResponseEntity.status(responseStatus).body(response);
     }
 }

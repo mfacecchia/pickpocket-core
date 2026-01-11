@@ -1,7 +1,9 @@
 package com.feis.splitnings.features.user.service;
 
+import com.feis.splitnings.common.enums.KeycloakUserAttribute;
 import com.feis.splitnings.common.exception.AlreadyRegisteredException;
 import com.feis.splitnings.common.service.AbstractService;
+import com.feis.splitnings.common.service.KeycloakService;
 import com.feis.splitnings.features.user.data.User;
 import com.feis.splitnings.features.user.data.dto.request.UserCreateDto;
 import com.feis.splitnings.features.user.data.dto.request.UserUpdateDto;
@@ -12,12 +14,9 @@ import com.feis.splitnings.features.user.repository.UserRepository;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService extends AbstractService<User, UserDto, UserCreateDto, UserUpdateDto, UserPageDto, Integer> {
     @Autowired
-    private Keycloak keycloak;
+    private KeycloakService keycloakService;
 
     public UserService(UserMapper userMapper, UserRepository userRepository) {
         this.mapper = userMapper;
@@ -39,18 +38,15 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
 
         UserDto dto = create(createDto);
 
-        // Updating KC user with provided userId
-        // TODO: Place this in a KeycloakService or some'
-        UserRepresentation kcUser = keycloak.realm("splitnings").users().get("899a3748-a7f5-4146-b8c6-026680d3f300").toRepresentation();
-        Map<String, List<String>> kcUserAttributes = kcUser.getAttributes();
-        if (kcUserAttributes == null) {
-            kcUserAttributes = new  HashMap<>();
-        }
-        kcUserAttributes.put("userId", List.of(dto.getId().toString()));
-        kcUser.setAttributes(kcUserAttributes);
-        keycloak.realm("splitnings").users().get(SecurityUtils.getJwtDto().getExternalId()).update(kcUser);
+        // Updating KC user with generated userId
+        Map<KeycloakUserAttribute, List<String>> kcUserAttributes = Map.of(KeycloakUserAttribute.USER_ID, List.of(dto.getId().toString()));
+        keycloakService.upsertUserAttributes(SecurityUtils.getJwtDto().getExternalId(), kcUserAttributes);
 
         return dto;
+    }
+
+    public KeycloakService getKeycloakService() {
+        return keycloakService;
     }
 
     @Override

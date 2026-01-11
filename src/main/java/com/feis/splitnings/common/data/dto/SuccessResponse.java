@@ -1,4 +1,4 @@
-package com.feis.splitnings.common.data.entity;
+package com.feis.splitnings.common.data.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

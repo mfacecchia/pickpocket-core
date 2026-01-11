@@ -1,4 +1,4 @@
-package com.feis.splitnings.common.data.dto;
+package com.feis.splitnings.common.data.dto.response;
 
 import java.util.ArrayList;
 import java.util.List;

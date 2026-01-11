@@ -1,6 +1,6 @@
 package com.feis.splitnings.common.service;
 
-import com.feis.splitnings.common.data.dto.BasePageDto;
+import com.feis.splitnings.common.data.dto.response.BasePageDto;
 import com.feis.splitnings.common.data.entity.BaseAuditingEntity;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 import com.feis.splitnings.common.exception.ValidationException;

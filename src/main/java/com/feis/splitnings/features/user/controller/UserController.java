@@ -1,5 +1,7 @@
 package com.feis.splitnings.features.user.controller;
 
+import com.feis.splitnings.common.data.entity.SuccessResponse;
+import com.feis.splitnings.common.exception.model.ErrorResponse;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.service.UserService;
 
@@ -37,10 +39,13 @@ public class UserController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserDto.class)) })
     })
     @PostMapping
-    public ResponseEntity<UserDto> createUser() {
+    public ResponseEntity<SuccessResponse<UserDto>> createUser() {
         UserDto dto = userService.createFromJwt();
-        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.getId().toString());
-        // TODO: Change respose type to custom DTO
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.toString());
+
+        HttpStatus responseStatus = HttpStatus.CREATED;
+        SuccessResponse<UserDto> response = new SuccessResponse<>(responseStatus.value(), "User created successfully", dto);
+
+        return ResponseEntity.status(responseStatus).body(response);
     }
 }

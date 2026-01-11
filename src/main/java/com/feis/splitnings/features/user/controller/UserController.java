@@ -1,6 +1,6 @@
 package com.feis.splitnings.features.user.controller;
 
-import com.feis.splitnings.common.data.entity.SuccessResponse;
+import com.feis.splitnings.common.data.dto.SuccessResponse;
 import com.feis.splitnings.common.exception.model.ErrorResponse;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.service.UserService;
@@ -36,7 +36,13 @@ public class UserController {
     @Operation(summary = "Create a new " + ITEM_NAME)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = ITEM_NAME + " was created", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserDto.class)) })
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = SuccessResponse.class)) }),
+            @ApiResponse(responseCode = "409", description = ITEM_NAME + " is already registered", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "404", description = ITEM_NAME + " with provided external id does not exist", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "500", description = "Generic server error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) })
     })
     @PostMapping
     public ResponseEntity<SuccessResponse<UserDto>> createUser() {

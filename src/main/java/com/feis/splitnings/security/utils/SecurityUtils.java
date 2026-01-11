@@ -8,6 +8,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 public class SecurityUtils {
 
+    private SecurityUtils() {
+    }
+
     public static Jwt getJwt() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (Jwt) authentication.getCredentials();

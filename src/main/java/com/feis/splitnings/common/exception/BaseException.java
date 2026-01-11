@@ -1,9 +1,9 @@
 package com.feis.splitnings.common.exception;
 
+import com.feis.splitnings.common.exception.model.Error;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.feis.splitnings.common.exception.model.Error;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

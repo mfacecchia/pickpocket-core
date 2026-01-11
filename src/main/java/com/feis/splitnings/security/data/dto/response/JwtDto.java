@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class JwtDto {
     private String userId;
+    private String externalId;
     private String firstName;
     private String middleName;
     private String lastName;

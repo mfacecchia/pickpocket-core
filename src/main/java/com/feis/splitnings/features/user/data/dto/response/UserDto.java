@@ -1,5 +1,7 @@
 package com.feis.splitnings.features.user.data.dto.response;
 
+import java.time.Instant;
+
 import com.feis.splitnings.common.data.dto.BaseGetDto;
 
 import lombok.Getter;
@@ -12,4 +14,5 @@ public class UserDto extends BaseGetDto {
     private String middleName;
     private String lastName;
     private String email;
+    private Instant lastLogin;
 }

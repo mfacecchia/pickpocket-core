@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class JwtConverter implements Converter<Jwt, AuthenticationToken> {
+
     @Override
     public AuthenticationToken convert(Jwt jwt) {
         JwtDto jwtDto = JwtMapper.mapToDto(jwt);

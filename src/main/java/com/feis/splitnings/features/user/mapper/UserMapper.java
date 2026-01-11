@@ -9,6 +9,8 @@ import com.feis.splitnings.features.user.data.dto.request.UserCreateDto;
 import com.feis.splitnings.features.user.data.dto.request.UserUpdateDto;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.data.dto.response.UserPageDto;
+import com.feis.splitnings.security.data.dto.response.JwtDto;
+import com.feis.splitnings.security.utils.SecurityUtils;
 
 @Component
 public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, UserUpdateDto, UserPageDto> {
@@ -22,6 +24,7 @@ public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, User
         entity.setMiddleName(dto.getMiddleName());
         entity.setLastName(dto.getLastName());
         entity.setEmail(dto.getEmail());
+        entity.setLastLogin(dto.getLastLogin());
 
         // Auditing
         entity.setCreatedBy(dto.getCreatedBy());
@@ -42,6 +45,7 @@ public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, User
         dto.setMiddleName(entity.getMiddleName());
         dto.setLastName(entity.getLastName());
         dto.setEmail(entity.getEmail());
+        dto.setLastLogin(entity.getLastLogin());
 
         // Auditing
         dto.setCreatedBy(entity.getCreatedBy());
@@ -95,5 +99,18 @@ public class UserMapper implements BaseMapper<User, UserDto, UserCreateDto, User
         updateDto.setEmail(entity.getEmail());
 
         return updateDto;
+    }
+
+    public UserCreateDto mapJwtDtoToCreateDto() {
+        JwtDto jwtDto = SecurityUtils.getJwtDto();
+
+        UserCreateDto createDto = new UserCreateDto();
+        createDto.setEmail(jwtDto.getEmail());
+        createDto.setFirstName(jwtDto.getFirstName());
+        createDto.setMiddleName(jwtDto.getMiddleName());
+        createDto.setLastName(jwtDto.getLastName());
+        createDto.setExternalId(jwtDto.getExternalId());
+
+        return createDto;
     }
 }

@@ -19,7 +19,6 @@ public class UserUpdateDto extends BaseUpdateDto {
     @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")
     private String firstName;
 
-    @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")
     private String middleName;
 
     @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")

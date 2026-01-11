@@ -1,7 +1,7 @@
 package com.feis.splitnings.common.exception;
 
-import com.feis.splitnings.common.exception.model.Error;
-import com.feis.splitnings.common.exception.model.InternalErrorCode;
+import com.feis.splitnings.common.exception.enums.InternalErrorCode;
+import com.feis.splitnings.common.exception.errors.Error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

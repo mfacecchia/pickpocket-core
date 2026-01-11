@@ -1,5 +1,12 @@
 package com.feis.splitnings.common.exception.handler;
 
+import com.feis.splitnings.common.exception.BaseException;
+import com.feis.splitnings.common.exception.ValidationException;
+import com.feis.splitnings.common.exception.errors.Error;
+import com.feis.splitnings.common.exception.data.dto.response.ErrorResponse;
+import com.feis.splitnings.common.exception.enums.InternalErrorCode;
+import com.feis.splitnings.common.exception.errors.ValidationError;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,13 +24,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
-
-import com.feis.splitnings.common.exception.BaseException;
-import com.feis.splitnings.common.exception.ValidationException;
-import com.feis.splitnings.common.exception.model.Error;
-import com.feis.splitnings.common.exception.model.ErrorResponse;
-import com.feis.splitnings.common.exception.model.InternalErrorCode;
-import com.feis.splitnings.common.exception.model.ValidationError;
 
 @ControllerAdvice
 public class GeneralExceptionHandler {
@@ -101,6 +101,7 @@ public class GeneralExceptionHandler {
 
         Error error = new Error(InternalErrorCode.UNHANDLED_ERROR, "Unexpected error while processing your request");
         if (ex != null) {
+            // TODO: Might be more useful getting the whole error as string instead of the error message only
             error.setDevMessage(ex.getMessage());
             baseException.setStackTrace(ex.getStackTrace());
         }
@@ -149,8 +150,7 @@ public class GeneralExceptionHandler {
                             })
                             .collect(Collectors.joining(LIST_JOIN_DELIMITER)));
         }
-        return new StringFormattedMessage(ERROR_MESSAGE_TEMPLATE, requestUri, httpStatus, httpError, messages)
-                .toString();
+        return new StringFormattedMessage(ERROR_MESSAGE_TEMPLATE, requestUri, httpStatus, httpError, messages) .toString();
     }
 
     private HttpStatus getExceptionStatusCode(Exception ex) {

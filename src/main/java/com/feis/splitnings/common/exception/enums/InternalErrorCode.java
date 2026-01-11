@@ -1,4 +1,4 @@
-package com.feis.splitnings.common.exception.model;
+package com.feis.splitnings.common.exception.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

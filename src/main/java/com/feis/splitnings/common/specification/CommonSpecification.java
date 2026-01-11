@@ -1,15 +1,15 @@
 package com.feis.splitnings.common.specification;
 
+import com.feis.splitnings.common.exception.BaseException;
+import com.feis.splitnings.common.exception.enums.InternalErrorCode;
+import com.feis.splitnings.common.exception.errors.Error;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
-
-import com.feis.splitnings.common.exception.BaseException;
-import com.feis.splitnings.common.exception.model.Error;
-import com.feis.splitnings.common.exception.model.InternalErrorCode;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;

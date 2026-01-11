@@ -1,4 +1,6 @@
-package com.feis.splitnings.common.exception.model;
+package com.feis.splitnings.common.exception.errors;
+
+import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 
 import org.springframework.lang.Nullable;
 

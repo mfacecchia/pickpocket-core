@@ -1,4 +1,6 @@
-package com.feis.splitnings.common.exception.model;
+package com.feis.splitnings.common.exception.data.dto.response;
+
+import com.feis.splitnings.common.exception.errors.Error;
 
 import java.time.Instant;
 import java.util.ArrayList;

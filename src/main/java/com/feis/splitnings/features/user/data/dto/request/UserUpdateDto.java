@@ -1,6 +1,6 @@
 package com.feis.splitnings.features.user.data.dto.request;
 
-import com.feis.splitnings.common.data.dto.BaseUpdateDto;
+import com.feis.splitnings.common.data.dto.request.BaseUpdateDto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

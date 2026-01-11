@@ -6,7 +6,7 @@ import java.io.InputStream;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.feis.splitnings.common.data.dto.BasePageDto;
+import com.feis.splitnings.common.data.dto.response.BasePageDto;
 import com.feis.splitnings.common.data.entity.BaseFileEntity;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 

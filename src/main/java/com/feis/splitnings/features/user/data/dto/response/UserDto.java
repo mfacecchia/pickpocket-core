@@ -2,7 +2,7 @@ package com.feis.splitnings.features.user.data.dto.response;
 
 import java.time.Instant;
 
-import com.feis.splitnings.common.data.dto.BaseGetDto;
+import com.feis.splitnings.common.data.dto.response.BaseGetDto;
 
 import lombok.Getter;
 import lombok.Setter;

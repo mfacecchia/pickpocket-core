@@ -1,6 +1,6 @@
 package com.feis.splitnings.features.user.controller;
 
-import com.feis.splitnings.common.data.dto.SuccessResponse;
+import com.feis.splitnings.common.data.dto.response.SuccessResponse;
 import com.feis.splitnings.common.exception.data.dto.response.ErrorResponse;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.service.UserService;

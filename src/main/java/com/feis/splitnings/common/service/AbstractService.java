@@ -124,9 +124,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     @Transactional
     public void delete(PK_TYPE id) {
         validateDelete(id);
-        // Soft delete implemented by default. If you want to hard delete, override this
-        // method in the service class
-        softDelete(id);
+        hardDelete(id);
     }
 
     protected void softDelete(PK_TYPE id) {
@@ -145,9 +143,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     }
 
     protected void hardDelete(PK_TYPE id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
-        }
+        repository.deleteById(id);
 
         logger.info("Delete ::: Execute hard delete on {} with id {}", resourceName, id);
     }

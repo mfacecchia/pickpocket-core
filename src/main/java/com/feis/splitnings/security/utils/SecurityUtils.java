@@ -25,4 +25,8 @@ public class SecurityUtils {
         Jwt jwt = getJwt();
         return jwt.getTokenValue();
     }
+
+    public static Integer getJwtUserId() {
+        return Integer.valueOf(getJwtDto().getUserId());
+    }
 }

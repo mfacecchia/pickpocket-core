@@ -10,18 +10,18 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserCreateDto {
-    @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")
-    @Email(message = "#{ValidationMessage.VALID_EMAIL.getMessage()}")
+    @NotBlank(message = "{field.blank}")
+    @Email(message = "{field.email}")
     private String email;
 
-    @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")
+    @NotBlank(message = "{field.blank}")
     private String firstName;
 
     private String middleName;
 
-    @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")
+    @NotBlank(message = "{field.blank}")
     private String lastName;
 
-    @NotBlank(message = "#{ValidationMessage.NOT_BLANK.getMessage()}")
+    @NotBlank(message = "{field.blank}")
     private String externalId;
 }

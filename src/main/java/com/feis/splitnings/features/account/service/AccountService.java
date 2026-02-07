@@ -69,8 +69,20 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     @Override
     protected void doCreate(Account toCreate) {
         toCreate.setWealth(0.00);
-        toCreate.setUserId(SecurityUtils.getJwtUserId());
-        toCreate.setCreatedBy(SecurityUtils.getJwtUserId().toString());
-        toCreate.setModifiedBy(SecurityUtils.getJwtUserId().toString());
+
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+        toCreate.setUserId(jwtUserId);
+        toCreate.setCreatedBy(jwtUserId.toString());
+        toCreate.setModifiedBy(jwtUserId.toString());
+    }
+
+    @Override
+    protected void doUpdate(Account toUpdate, AccountUpdateDto updateDto) {
+        toUpdate.setModifiedBy(SecurityUtils.getJwtUserId().toString());
+    }
+
+    @Override
+    protected void doDelete(Account toDelete) {
+        toDelete.setModifiedBy(SecurityUtils.getJwtUserId().toString());
     }
 }

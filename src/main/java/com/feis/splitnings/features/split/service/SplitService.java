@@ -140,7 +140,9 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     protected void doCreate(Split toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        updateDefaultSplit(toCreate.getAccountId(), toCreate.getSplitPercentage(), false, jwtUserId.toString());
+        // Default split percentage needs to be decreased by new split amount, therefore
+        // we pass the same value, but prefix it with `-` sign.
+        updateDefaultSplit(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1), jwtUserId.toString());
 
         AccountDto account = accountService.get(toCreate.getAccountId());
         double splitTheoreticalAmount = computeSplitTheoreticalAmount(account.getWealth(), toCreate.getSplitPercentage());
@@ -174,43 +176,13 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     protected void doDelete(Split entity) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        updateDefaultSplit(entity.getAccountId(), entity.getSplitPercentage(), true, jwtUserId.toString());
+        updateDefaultSplit(entity.getAccountId(), entity.getSplitPercentage(), jwtUserId.toString());
 
         entity.setModifiedBy(jwtUserId.toString());
     }
 
     private double computeSplitTheoreticalAmount(double accountWealth, short splitPercentage) {
         return (accountWealth * splitPercentage) / 100;
-    }
-
-    /**
-     * Updates the default split for a specific account.
-     * More specifically, updates the allocated percentage,
-     * and its theoretical amount based on the updated percentage.
-     *
-     * @param accountId - the account id which default split belongs to
-     * @param updateBy - the percentage amount to increase/decrease by
-     * @param increasePercentage - whether to increase (`true`) or decrease (`false`)
-     *  the allocated percentage by
-     * @param auditor who triggered the default split update. This field generally matches
-     *  the authenticated user making the web request
-     */
-    @Transactional
-    private void updateDefaultSplit(int accountId, short updateBy, boolean increasePercentage, String auditor) {
-        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
-
-        short updatedDefaultSplitPercentage = increasePercentage ?
-                (short) (defaultSplit.getSplitPercentage() + updateBy)
-                : (short) (defaultSplit.getSplitPercentage() - updateBy);
-
-        defaultSplit.setSplitPercentage(updatedDefaultSplitPercentage);
-
-        AccountDto accountDto = accountService.get(accountId);
-
-        double updatedDefaultSplitTheoreticalAmount = computeSplitTheoreticalAmount(accountDto.getWealth(), updatedDefaultSplitPercentage);
-        defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
-
-        defaultSplit.setModifiedBy(auditor);
     }
 
     /**

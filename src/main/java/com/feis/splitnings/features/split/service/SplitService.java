@@ -21,18 +21,43 @@ import com.feis.splitnings.security.utils.SecurityUtils;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDto, SplitUpdateDto, SplitPageDto, Integer> {
-    private AccountService accountService;
+    private final AccountService accountService;
+
+    private final static Logger logger = LogManager.getLogger(SplitService.class);
 
     public SplitService(SplitMapper splitMapper, SplitRepository splitRepository, AccountService accountService) {
         this.mapper = splitMapper;
         this.repository = splitRepository;
         this.accountService = accountService;
         this.resourceName = "Split";
+    }
+
+    @Transactional
+    @Override
+    public SplitDto update(Integer id, SplitUpdateDto updateDto) {
+        Split existing = repository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException(resourceName, id.toString()));
+
+        doValidate(updateDto);
+        validateUpdateDto(updateDto, existing);
+
+        // Moved `doUpdate` before mapping because previous split
+        // information is required to correctly perform
+        // allocated percentages calculations
+        doUpdate(existing, updateDto);
+        convertUpdateDtoToEntity(updateDto, existing);
+        Split saved = save(existing);
+
+        logger.info("Update ::: Updated {} with id {}", resourceName, id);
+
+        return convertToDto(saved);
     }
 
     @Override
@@ -49,7 +74,13 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        validateSplitAllocation(createDto.getAccountId(), createDto.getSplitPercentage());
+        // TODO: move in some auxiliary method, this is getting too complex
+        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(createDto.getAccountId());
+        if (defaultSplit.getSplitPercentage() < createDto.getSplitPercentage()) {
+            String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - createDto.getSplitPercentage()));
+            Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
+            throw new ValidationException(List.of(error));
+        }
     }
 
     @Override
@@ -67,10 +98,20 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         }
 
         Short updateSplitPercentage = updateDto.getSplitPercentage();
-        Short existingSplitPercentage = updateDto.getSplitPercentage();
+        Short existingSplitPercentage = existing.getSplitPercentage();
 
-        if (!updateSplitPercentage.equals(existingSplitPercentage) || updateSplitPercentage > existingSplitPercentage) {
-            validateSplitAllocation(existing.getAccountId(), updateDto.getSplitPercentage());
+        if (!updateSplitPercentage.equals(existingSplitPercentage) && updateSplitPercentage > existingSplitPercentage) {
+            // This represents the allocating percentage difference. It's used to
+            // actually calculate whether the default split can allocate such more on the updated split
+            short percentageDiff = (short) (existingSplitPercentage - updateSplitPercentage);
+
+            // TODO: move in some auxiliary method, this is getting too complex
+            Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(existing.getAccountId());
+            if (defaultSplit.getSplitPercentage() + percentageDiff < 0) {
+                String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() + percentageDiff));
+                Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
+                throw new ValidationException(List.of(error));
+            }
         }
 
     }
@@ -118,28 +159,14 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     protected void doUpdate(Split toUpdate, SplitUpdateDto updateDto) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        // FIXME: It's not needed to decrease default split amount every time.
-        // A fix for this might be to calculate the difference between the default split and the
-        // updated split allocated percentage, and sum the difference to the current
-        // default split amount (such value can also be negative of course).
-        updateDefaultSplit(toUpdate.getAccountId(), updateDto.getSplitPercentage(), false, jwtUserId.toString());
+        short defaultSplitPercentageIncrBy = (short) (toUpdate.getSplitPercentage() - updateDto.getSplitPercentage());
+        updateDefaultSplit(toUpdate.getAccountId(), defaultSplitPercentageIncrBy, jwtUserId.toString());
 
         AccountDto account = accountService.get(toUpdate.getAccountId());
         double splitTheoreticalAmount = computeSplitTheoreticalAmount(account.getWealth(), updateDto.getSplitPercentage());
         toUpdate.setTheoreticalAmount(splitTheoreticalAmount);
 
         toUpdate.setModifiedBy(jwtUserId.toString());
-    }
-
-    @Transactional
-    private void validateSplitAllocation(int accountId, int percentageToAllocate) {
-        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
-
-        if (defaultSplit.getSplitPercentage() < percentageToAllocate) {
-            String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - percentageToAllocate));
-            Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
-            throw new ValidationException(List.of(error));
-        }
     }
 
     @Transactional
@@ -175,6 +202,34 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         short updatedDefaultSplitPercentage = increasePercentage ?
                 (short) (defaultSplit.getSplitPercentage() + updateBy)
                 : (short) (defaultSplit.getSplitPercentage() - updateBy);
+
+        defaultSplit.setSplitPercentage(updatedDefaultSplitPercentage);
+
+        AccountDto accountDto = accountService.get(accountId);
+
+        double updatedDefaultSplitTheoreticalAmount = computeSplitTheoreticalAmount(accountDto.getWealth(), updatedDefaultSplitPercentage);
+        defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
+
+        defaultSplit.setModifiedBy(auditor);
+    }
+
+    /**
+     * Updates the default split for a specific account.
+     * More specifically, updates the allocated percentage,
+     * and its theoretical amount based on the updated percentage.
+     *
+     * @param accountId - the account id which default split belongs to
+     * @param updateBy - the percentage amount to increase/decrease by.
+     *  Negative values are expected here as well to decrease default split
+     *  allocated percentage
+     * @param auditor who triggered the default split update. This field generally matches
+     *  the authenticated user making the web request
+     */
+    @Transactional
+    private void updateDefaultSplit(int accountId, short updateBy, String auditor) {
+        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
+
+        short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + updateBy);
 
         defaultSplit.setSplitPercentage(updatedDefaultSplitPercentage);
 

@@ -99,7 +99,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         doCreate(entity);
         ENTITY saved = save(entity);
 
-        logger.info("Create ::: Created new {} with id", resourceName, getResourceId(saved));
+        logger.info("Create ::: Created new {} with id {}", resourceName, getResourceId(saved));
 
         return convertToDto(saved);
     }
@@ -116,7 +116,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         doUpdate(existing, updateDto);
         ENTITY saved = save(existing);
 
-        logger.info("Update ::: Updated {} with id ", resourceName, id);
+        logger.info("Update ::: Updated {} with id {}", resourceName, id);
 
         return convertToDto(saved);
     }

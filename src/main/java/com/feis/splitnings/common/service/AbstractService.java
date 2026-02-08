@@ -60,33 +60,33 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         Specification<ENTITY> specification = specificationBuilder.build();
 
         if (pageable != null) {
-            Page<GET_DTO> entityPage = repository.findAll(specification, pageable).map(mapper::mapToDto);
+            Page<ENTITY> entityPage = repository.findAll(specification, pageable);
 
-            PAGEABLE_DTO pageableDto = convertToPageDto(entityPage);
+            Page<GET_DTO> entityDtoPage = doFilter(entityPage).map(mapper::mapToDto);
+
+            PAGEABLE_DTO pageableDto = convertToPageDto(entityDtoPage);
 
             if (showTotalCount) {
-                long totalCount = entityPage.getTotalElements();
+                long totalCount = entityDtoPage.getTotalElements();
                 pageableDto.setTotalCount(totalCount);
             }
 
-            logger.info("GetAll ::: Found {} total results. Displaying first {} items", entityPage.getTotalElements(), entityPage.getNumberOfElements());
+            logger.info("GetAll ::: Found {} total results. Displaying first {} items", entityDtoPage.getTotalElements(), entityDtoPage.getNumberOfElements());
 
             return pageableDto;
         }
 
-        List<GET_DTO> itemsList = repository.findAll(specification).stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        List<ENTITY> itemsList = repository.findAll(specification);
 
         Page<GET_DTO> itemsPage;
         if (itemsList.isEmpty()) {
             itemsPage = Page.empty();
         } else {
             pageable = PageRequest.of(0, itemsList.size());
-            itemsPage = new PageImpl<>(itemsList, pageable, itemsList.size());
+            itemsPage = doFilter(new PageImpl<>(itemsList, pageable, itemsList.size())).map(mapper::mapToDto);
         }
 
-        logger.info("GetAll ::: Found {} total results.", itemsList.size());
+        logger.info("GetAll ::: Found {} total results. Displaying first {} items", itemsPage.getTotalElements(), itemsPage.getNumberOfElements());
 
         return convertToPageDto(itemsPage);
     }
@@ -124,7 +124,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     @Transactional
     public void delete(PK_TYPE id) {
         validateDelete(id);
-        hardDelete(id);
+        softDelete(id);
     }
 
     protected void softDelete(PK_TYPE id) {
@@ -164,6 +164,10 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         if (appValidationerrors.size() >= 1) {
             throw new ValidationException(appValidationerrors);
         }
+    }
+
+    protected  Page<ENTITY> doFilter(Page<ENTITY> entityPage) {
+        return entityPage;
     }
 
     protected void doCreate(ENTITY toCreate) {

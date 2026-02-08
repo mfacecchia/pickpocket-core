@@ -20,9 +20,14 @@ import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,6 +138,26 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     @Override
     protected Integer getResourceId(Split entity) {
         return entity.getId();
+    }
+
+    @Override
+    protected Page<Split> doFilter(Page<Split> entityPage) {
+        if (entityPage == null || entityPage.isEmpty()) {
+            return entityPage;
+        }
+
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Set<Integer> userAccountIds = accountService.getAllByUserId(jwtUserId).stream()
+                .map(AccountDto::getId)
+                .collect(Collectors.toSet());
+
+        // Returning only splits which belong to the requesting user
+        List<Split> filtered = entityPage.get()
+                .filter((entity) -> userAccountIds.contains(entity.getAccountId()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<Split>(filtered, entityPage.getPageable(), filtered.size());
     }
 
     @Transactional

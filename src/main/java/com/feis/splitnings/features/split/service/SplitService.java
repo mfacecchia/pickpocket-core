@@ -79,7 +79,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        // TODO: move in some auxiliary method, this is getting too complex
         Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(createDto.getAccountId());
         if (defaultSplit.getSplitPercentage() < createDto.getSplitPercentage()) {
             String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - createDto.getSplitPercentage()));
@@ -110,7 +109,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             // actually calculate whether the default split can allocate such more on the updated split
             short percentageDiff = (short) (existingSplitPercentage - updateSplitPercentage);
 
-            // TODO: move in some auxiliary method, this is getting too complex
             Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(existing.getAccountId());
             if (defaultSplit.getSplitPercentage() + percentageDiff < 0) {
                 String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() + percentageDiff));

@@ -37,6 +37,10 @@ public class CommonSpecificationBuilder<ENTITY> {
             if (spec.getCriteria().getValue() == null) {
                 continue;
             }
+            if (result == null) {
+                result = spec;
+                continue;
+            }
             result = spec.getCriteria().isOrPredicate() ? result.or(spec) : result.and(spec);
         }
 

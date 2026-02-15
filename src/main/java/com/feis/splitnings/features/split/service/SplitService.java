@@ -7,8 +7,8 @@ import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.errors.Error;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.service.AbstractService;
-import com.feis.splitnings.features.account.data.dto.response.AccountDto;
-import com.feis.splitnings.features.account.service.AccountService;
+import com.feis.splitnings.features.account.data.Account;
+import com.feis.splitnings.features.account.service.AccountReadService;
 import com.feis.splitnings.features.split.data.Split;
 import com.feis.splitnings.features.split.data.dto.request.SplitCreateDto;
 import com.feis.splitnings.features.split.data.dto.request.SplitUpdateDto;
@@ -16,6 +16,7 @@ import com.feis.splitnings.features.split.data.dto.response.SplitDto;
 import com.feis.splitnings.features.split.data.dto.response.SplitPageDto;
 import com.feis.splitnings.features.split.mapper.SplitMapper;
 import com.feis.splitnings.features.split.repository.SplitRepository;
+import com.feis.splitnings.features.split.utils.SplitUtils;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.util.List;
@@ -33,18 +34,41 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDto, SplitUpdateDto, SplitPageDto, Integer> {
-    private final AccountService accountService;
+    private final AccountReadService accountReadService;
 
     private final static Logger logger = LogManager.getLogger(SplitService.class);
 
-    public SplitService(SplitMapper splitMapper, SplitRepository splitRepository, AccountService accountService) {
+    public SplitService(SplitMapper splitMapper, SplitRepository splitRepository, AccountReadService accountReadService) {
         this.mapper = splitMapper;
         this.repository = splitRepository;
-        this.accountService = accountService;
+        this.accountReadService = accountReadService;
         this.resourceName = "Split";
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    public SplitDto createDefaultSplit(Integer accountId, Double amount) {
+        Optional<Split> defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
+
+        if (defaultSplit.isPresent()) {
+            logger.error(String.format("CreateDefaultSplit ::: A default split already exists for account id %s", accountId));
+
+            String message = "A default split already exists for this account";
+            Error error = new Error(InternalErrorCode.CONFLICT, message);
+            throw new ConflictException(error);
+        }
+
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Split toCreate = SplitUtils.buildDefaultSplit(amount, accountId);
+        toCreate.setCreatedBy(jwtUserId.toString());
+        toCreate.setModifiedBy(jwtUserId.toString());
+
+        repository.save(toCreate);
+
+        return convertToDto(toCreate);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public SplitDto update(Integer id, SplitUpdateDto updateDto) {
         Split existing = repository.findById(id).orElseThrow(
@@ -69,7 +93,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     protected void validateCreateDto(SplitCreateDto createDto) {
         // This checks whether the account is owned by the current user.
         // If not, the calling method will throw a `ResourceNotFoundException`
-        accountService.getByIdAndUserId(createDto.getAccountId(), SecurityUtils.getJwtUserId());
+        accountReadService.getByIdAndUserId(createDto.getAccountId(), SecurityUtils.getJwtUserId());
 
         Optional<Split> split = ((SplitRepository) repository).findByNameAndAccountId(createDto.getName(), createDto.getAccountId());
 
@@ -79,7 +103,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(createDto.getAccountId());
+        Split defaultSplit = getDefaultSplitByAccountId(createDto.getAccountId());
         if (defaultSplit.getSplitPercentage() < createDto.getSplitPercentage()) {
             String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - createDto.getSplitPercentage()));
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -109,7 +133,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             // actually calculate whether the default split can allocate such more on the updated split
             short percentageDiff = (short) (existingSplitPercentage - updateSplitPercentage);
 
-            Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(existing.getAccountId());
+            Split defaultSplit = getDefaultSplitByAccountId(existing.getAccountId());
             if (defaultSplit.getSplitPercentage() + percentageDiff < 0) {
                 String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() + percentageDiff));
                 Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -130,7 +154,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         // This checks whether the account is owned by the current user.
         // If not, the calling method will throw a `ResourceNotFoundException`
-        accountService.getByIdAndUserId(split.getAccountId(), SecurityUtils.getJwtUserId());
+        accountReadService.getByIdAndUserId(split.getAccountId(), SecurityUtils.getJwtUserId());
     }
 
     @Override
@@ -146,8 +170,8 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Set<Integer> userAccountIds = accountService.getAllByUserId(jwtUserId).stream()
-                .map(AccountDto::getId)
+        Set<Integer> userAccountIds = accountReadService.getAllByUserId(jwtUserId).stream()
+                .map(Account::getId)
                 .collect(Collectors.toSet());
 
         // Returning only splits which belong to the requesting user
@@ -158,7 +182,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         return new PageImpl<Split>(filtered, entityPage.getPageable(), filtered.size());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doCreate(Split toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
@@ -167,7 +191,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         // we pass the same value, but prefix it with `-` sign.
         updateDefaultSplit(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1), jwtUserId.toString());
 
-        AccountDto account = accountService.get(toCreate.getAccountId());
+        Account account = accountReadService.getById(toCreate.getAccountId());
         double splitTheoreticalAmount = computeSplitTheoreticalAmount(account.getWealth(), toCreate.getSplitPercentage());
         toCreate.setAvailableAmount(0.00);
         toCreate.setTheoreticalAmount(splitTheoreticalAmount);
@@ -179,7 +203,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         toCreate.setModifiedBy(jwtUserId.toString());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doUpdate(Split toUpdate, SplitUpdateDto updateDto) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
@@ -187,14 +211,14 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         short defaultSplitPercentageIncrBy = (short) (toUpdate.getSplitPercentage() - updateDto.getSplitPercentage());
         updateDefaultSplit(toUpdate.getAccountId(), defaultSplitPercentageIncrBy, jwtUserId.toString());
 
-        AccountDto account = accountService.get(toUpdate.getAccountId());
+        Account account = accountReadService.getById(toUpdate.getAccountId());
         double splitTheoreticalAmount = computeSplitTheoreticalAmount(account.getWealth(), updateDto.getSplitPercentage());
         toUpdate.setTheoreticalAmount(splitTheoreticalAmount);
 
         toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doDelete(Split entity) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
@@ -220,19 +244,25 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      * @param auditor who triggered the default split update. This field generally matches
      *  the authenticated user making the web request
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     private void updateDefaultSplit(int accountId, short updateBy, String auditor) {
-        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
+        Split defaultSplit = getDefaultSplitByAccountId(accountId);
 
         short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + updateBy);
 
         defaultSplit.setSplitPercentage(updatedDefaultSplitPercentage);
 
-        AccountDto accountDto = accountService.get(accountId);
+        Account account = accountReadService.getById(accountId);
 
-        double updatedDefaultSplitTheoreticalAmount = computeSplitTheoreticalAmount(accountDto.getWealth(), updatedDefaultSplitPercentage);
+        double updatedDefaultSplitTheoreticalAmount = computeSplitTheoreticalAmount(account.getWealth(), updatedDefaultSplitPercentage);
         defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
 
         defaultSplit.setModifiedBy(auditor);
+    }
+
+    private Split getDefaultSplitByAccountId(Integer accountId) {
+        return ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Default split", "account", accountId.toString()));
+
     }
 }

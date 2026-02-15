@@ -5,11 +5,9 @@ import com.feis.splitnings.common.exception.data.dto.response.ErrorResponse;
 import com.feis.splitnings.features.account.data.dto.request.AccountCreateDto;
 import com.feis.splitnings.features.account.data.dto.request.AccountUpdateDto;
 import com.feis.splitnings.features.account.data.dto.response.AccountDto;
+import com.feis.splitnings.features.account.orchestrator.AccountSplitOrchestrator;
 import com.feis.splitnings.features.account.service.AccountService;
 import com.feis.splitnings.security.utils.SecurityUtils;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,10 +35,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AccountController {
     private static final String ID_NAME = "id";
     private static final String ITEM_NAME = "Account";
-    private static final Logger logger = LogManager.getLogger(AccountController.class);
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private AccountSplitOrchestrator accountSplitOrchestrator;
 
     @Operation(summary = "Get an " + ITEM_NAME + " by its " + ID_NAME)
     @ApiResponses(value = {
@@ -74,8 +74,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<SuccessResponse<AccountDto>> createAccount(
             @RequestBody(required = true) AccountCreateDto createDto) {
-        AccountDto dto = accountService.create(createDto);
-        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.toString());
+        AccountDto dto = accountSplitOrchestrator.createAccountAndDefaultSplit(createDto);
 
         HttpStatus responseStatus = HttpStatus.CREATED;
         SuccessResponse<AccountDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " created successfully", dto);

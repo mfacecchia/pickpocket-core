@@ -133,7 +133,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             // actually calculate whether the default split can allocate such more on the updated split
             short percentageDiff = (short) (existingSplitPercentage - updateSplitPercentage);
 
-            Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(existing.getAccountId());
+            Split defaultSplit = getDefaultSplitByAccountId(existing.getAccountId());
             if (defaultSplit.getSplitPercentage() + percentageDiff < 0) {
                 String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() + percentageDiff));
                 Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);

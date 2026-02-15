@@ -181,7 +181,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         return new PageImpl<Split>(filtered, entityPage.getPageable(), filtered.size());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doCreate(Split toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
@@ -202,7 +202,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         toCreate.setModifiedBy(jwtUserId.toString());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doUpdate(Split toUpdate, SplitUpdateDto updateDto) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
@@ -217,7 +217,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doDelete(Split entity) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
@@ -243,7 +243,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      * @param auditor who triggered the default split update. This field generally matches
      *  the authenticated user making the web request
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     private void updateDefaultSplit(int accountId, short updateBy, String auditor) {
         Split defaultSplit = getDefaultSplitByAccountId(accountId);
 

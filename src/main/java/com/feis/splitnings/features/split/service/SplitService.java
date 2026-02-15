@@ -44,7 +44,30 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         this.resourceName = "Split";
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    public SplitDto createDefaultSplit(Integer accountId, Double amount) {
+        Optional<Split> defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
+
+        if (defaultSplit.isPresent()) {
+            logger.error(String.format("CreateDefaultSplit ::: A default split already exists for account id %s", accountId));
+
+            String message = "A default split already exists for this account";
+            Error error = new Error(InternalErrorCode.CONFLICT, message);
+            throw new ConflictException(error);
+        }
+
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Split toCreate = SplitUtils.buildDefaultSplit(amount, accountId);
+        toCreate.setCreatedBy(jwtUserId.toString());
+        toCreate.setModifiedBy(jwtUserId.toString());
+
+        repository.save(toCreate);
+
+        return convertToDto(toCreate);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public SplitDto update(Integer id, SplitUpdateDto updateDto) {
         Split existing = repository.findById(id).orElseThrow(
@@ -79,7 +102,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(createDto.getAccountId());
+        Split defaultSplit = getDefaultSplitByAccountId(createDto.getAccountId());
         if (defaultSplit.getSplitPercentage() < createDto.getSplitPercentage()) {
             String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - createDto.getSplitPercentage()));
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -222,7 +245,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      */
     @Transactional
     private void updateDefaultSplit(int accountId, short updateBy, String auditor) {
-        Split defaultSplit = ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId);
+        Split defaultSplit = getDefaultSplitByAccountId(accountId);
 
         short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + updateBy);
 
@@ -234,5 +257,11 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
 
         defaultSplit.setModifiedBy(auditor);
+    }
+
+    private Split getDefaultSplitByAccountId(Integer accountId) {
+        return ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Default split", "account", accountId.toString()));
+
     }
 }

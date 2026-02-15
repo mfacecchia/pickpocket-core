@@ -80,9 +80,8 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
 
     @Override
     protected void doCreate(Account toCreate) {
-        toCreate.setWealth(0.00);
-
         Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         toCreate.setUserId(jwtUserId);
         toCreate.setCreatedBy(jwtUserId.toString());
         toCreate.setModifiedBy(jwtUserId.toString());

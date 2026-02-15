@@ -2,14 +2,20 @@ package com.feis.splitnings.features.account.controller;
 
 import com.feis.splitnings.common.data.dto.response.SuccessResponse;
 import com.feis.splitnings.common.exception.data.dto.response.ErrorResponse;
+import com.feis.splitnings.common.specification.CommonSpecificationBuilder;
+import com.feis.splitnings.common.specification.PageableUtil;
+import com.feis.splitnings.features.account.data.Account;
 import com.feis.splitnings.features.account.data.dto.request.AccountCreateDto;
 import com.feis.splitnings.features.account.data.dto.request.AccountUpdateDto;
 import com.feis.splitnings.features.account.data.dto.response.AccountDto;
+import com.feis.splitnings.features.account.data.dto.response.AccountPageDto;
+import com.feis.splitnings.features.account.data.enums.Field;
 import com.feis.splitnings.features.account.orchestrator.AccountSplitOrchestrator;
 import com.feis.splitnings.features.account.service.AccountService;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,6 +65,35 @@ public class AccountController {
 
         HttpStatus responseStatus = HttpStatus.OK;
         SuccessResponse<AccountDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " was found", dto);
+
+        return ResponseEntity.status(responseStatus).body(response);
+    }
+
+    @Operation(summary = "Get all " + ITEM_NAME + "s")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = ITEM_NAME + "s found", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = SuccessResponse.class)) }),
+            @ApiResponse(responseCode = "500", description = "Generic server error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) })
+    })
+    @GetMapping()
+    public ResponseEntity<SuccessResponse<AccountPageDto>> getAllAccounts(
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "description", required = false) String description,
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "size", required = false) Integer size,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "name") String sortBy,
+            @RequestParam(name = "sortDirection", required = false, defaultValue = "ASC") String sortDirection,
+            @RequestParam(name = "showTotalPageCount", required = false, defaultValue = "true") Boolean showTotalPageCount) {
+
+        Pageable pageable = PageableUtil.buildPageable(page, size, sortBy, sortDirection);
+        CommonSpecificationBuilder<Account> specificationBuilder = new CommonSpecificationBuilder<Account>()
+                .like(Field.name.name(), name, false)
+                .like(Field.description.name(), description, false);
+
+        AccountPageDto pageDto = accountService.getAll(specificationBuilder, pageable, showTotalPageCount);
+        HttpStatus responseStatus = HttpStatus.OK;
+        SuccessResponse<AccountPageDto> response = new SuccessResponse<>(responseStatus.value(), pageDto.getTotalCount() + " " + ITEM_NAME + "s found", pageDto);
 
         return ResponseEntity.status(responseStatus).body(response);
     }

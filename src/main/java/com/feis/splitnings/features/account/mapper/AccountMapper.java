@@ -70,6 +70,7 @@ public class AccountMapper implements BaseMapper<Account, AccountDto, AccountCre
 
         entity.setName(createDto.getName());
         entity.setDescription(createDto.getDescription());
+        entity.setWealth(createDto.getInitialAmount());
 
         return entity;
     }

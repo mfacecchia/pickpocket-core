@@ -18,4 +18,23 @@ public class SplitUtils {
 
         return defaultSplit;
     }
+
+    /**
+     * Computes split theoretical amount.
+     *
+     * Similar to the other utility method (`computeSplitAmount`), you'd prefer
+     * using this when you want to calculate the split amount without considering
+     * its previous value.
+     */
+    public static double computeSplitTheoreticalAmount(double accountWealth, short splitPercentage) {
+        return (accountWealth * splitPercentage) / 100;
+    }
+
+    /**
+     * Computes the split amount (either theoretical or available) based on the total amount to topUp
+     */
+    public static double computeSplitAmount(double topUpAmount, short splitPercentage, double currentSplitAmount) {
+        double computedTopUpAmount = (topUpAmount * splitPercentage) / 100;
+        return currentSplitAmount + computedTopUpAmount;
+    }
 }

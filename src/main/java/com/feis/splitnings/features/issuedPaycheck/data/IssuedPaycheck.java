@@ -10,8 +10,10 @@ import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,12 +35,20 @@ public class IssuedPaycheck extends BaseEntity {
     @Column(name = "successful", nullable = false)
     private Boolean successful;
 
-    @JoinColumn(name = "paycheck_id", nullable = false)
-    @ManyToOne
+    @Column(name = "paycheck_id")
+    private Integer paycheckId;
+
+    @Column(name = "account_id", nullable = false)
+    private Integer accountId;
+
+    /* ---RELATIONSHIPS--- */
+
+    @JoinColumn(name = "paycheck_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Paycheck paycheck;
 
-    @JoinColumn(name = "account_id", nullable = false)
-    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false, insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Account account;
 }
 

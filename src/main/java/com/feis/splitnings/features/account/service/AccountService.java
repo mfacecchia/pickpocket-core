@@ -12,6 +12,8 @@ import com.feis.splitnings.features.account.mapper.AccountMapper;
 import com.feis.splitnings.features.account.repository.AccountRepository;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,12 +24,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AccountService extends AbstractService<Account, AccountDto, AccountCreateDto, AccountUpdateDto, AccountPageDto, Integer> {
+    private final AccountReadService accountReadService;
     private static final Logger logger = LogManager.getLogger(AccountService.class);
 
-    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository) {
+    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository, AccountReadService accountReadService) {
         this.mapper = accountMapper;
         this.repository = accountRepository;
         this.resourceName = "Account";
+        this.accountReadService = accountReadService;
     }
 
     public AccountDto getByIdAndUserId(Integer id, Integer userId) {
@@ -47,6 +51,22 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
         return userAccounts.stream()
                 .map(mapper::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    public AccountDto topUpAccount(Integer accountId, Double topUpAmount) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
+
+        account.setWealth(account.getWealth() + topUpAmount);
+        account.setModifiedBy(jwtUserId.toString());
+
+        repository.save(account);
+
+        logger.info("Updated account {} wealth to {}", accountId, account.getWealth());
+
+        return convertToDto(account);
     }
 
     @Override

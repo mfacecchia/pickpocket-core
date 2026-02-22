@@ -12,9 +12,6 @@ import com.feis.splitnings.features.split.data.dto.response.SplitPageDto;
 import com.feis.splitnings.features.split.data.enums.Field;
 import com.feis.splitnings.features.split.service.SplitService;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -43,7 +40,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class SplitController {
     private static final String ID_NAME = "id";
     private static final String ITEM_NAME = "Split";
-    private static final Logger logger = LogManager.getLogger(SplitController.class);
 
     @Autowired
     private SplitService splitService;
@@ -113,8 +109,8 @@ public class SplitController {
     @PostMapping
     public ResponseEntity<SuccessResponse<SplitDto>> createSplit(
             @RequestBody(required = true) SplitCreateDto createDto) {
+
         SplitDto dto = splitService.create(createDto);
-        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.toString());
 
         HttpStatus responseStatus = HttpStatus.CREATED;
         SuccessResponse<SplitDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " created successfully", dto);

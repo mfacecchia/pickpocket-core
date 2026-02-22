@@ -10,8 +10,11 @@ import com.feis.splitnings.features.account.data.dto.request.AccountUpdateDto;
 import com.feis.splitnings.features.account.data.dto.response.AccountDto;
 import com.feis.splitnings.features.account.data.dto.response.AccountPageDto;
 import com.feis.splitnings.features.account.data.enums.Field;
+import com.feis.splitnings.features.issuedPaycheck.orchestrator.AccountIssuedPaycheckOrchestrator;
 import com.feis.splitnings.features.account.orchestrator.AccountSplitOrchestrator;
 import com.feis.splitnings.features.account.service.AccountService;
+import com.feis.splitnings.features.issuedPaycheck.data.dto.request.IssuedPaycheckCreateDto;
+import com.feis.splitnings.features.issuedPaycheck.data.dto.response.IssuedPaycheckDto;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +51,9 @@ public class AccountController {
 
     @Autowired
     private AccountSplitOrchestrator accountSplitOrchestrator;
+
+    @Autowired
+    private AccountIssuedPaycheckOrchestrator accountIssuedPaycheckOrchestrator;
 
     @Operation(summary = "Get an " + ITEM_NAME + " by its " + ID_NAME)
     @ApiResponses(value = {
@@ -114,6 +120,29 @@ public class AccountController {
 
         HttpStatus responseStatus = HttpStatus.CREATED;
         SuccessResponse<AccountDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " created successfully", dto);
+
+        return ResponseEntity.status(responseStatus).body(response);
+    }
+
+    @Operation(summary = "Tops up an " + ITEM_NAME + " with the specified amount")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = ITEM_NAME + " was updated", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = SuccessResponse.class)) }),
+            @ApiResponse(responseCode = "404", description = ITEM_NAME + " does not exist", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "500", description = "Generic server error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) })
+    })
+    @PostMapping("/{" + ID_NAME + "}/top-up")
+    public ResponseEntity<SuccessResponse<IssuedPaycheckDto>> issuePaycheck(
+            @PathVariable(name = ID_NAME) Integer accountId,
+            @RequestBody(required = true) IssuedPaycheckCreateDto createDto) {
+
+        createDto.setAccountId(accountId);
+        IssuedPaycheckDto dto = accountIssuedPaycheckOrchestrator.issueManualPaycheck(createDto);
+
+        HttpStatus responseStatus = HttpStatus.OK;
+        SuccessResponse<IssuedPaycheckDto> response = new SuccessResponse<>(responseStatus.value(), "Paycheck issued successfully", dto);
 
         return ResponseEntity.status(responseStatus).body(response);
     }

@@ -5,8 +5,6 @@ import com.feis.splitnings.common.exception.data.dto.response.ErrorResponse;
 import com.feis.splitnings.features.user.data.dto.response.UserDto;
 import com.feis.splitnings.features.user.service.UserService;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,7 +26,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class UserController {
     private static final String ID_NAME = "id";
     private static final String ITEM_NAME = "User";
-    private static final Logger logger = LogManager.getLogger(UserController.class);
 
     @Autowired
     private UserService userService;
@@ -47,7 +44,6 @@ public class UserController {
     @PostMapping
     public ResponseEntity<SuccessResponse<UserDto>> createUser() {
         UserDto dto = userService.createFromJwt();
-        logger.info("New {} was created with {}:{}", ITEM_NAME, ID_NAME, dto.toString());
 
         HttpStatus responseStatus = HttpStatus.CREATED;
         SuccessResponse<UserDto> response = new SuccessResponse<>(responseStatus.value(), "User created successfully", dto);

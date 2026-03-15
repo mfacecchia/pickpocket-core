@@ -48,7 +48,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     protected abstract PK_TYPE getResourceId(ENTITY entity);
 
     public GET_DTO get(PK_TYPE id) {
-        ENTITY entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
+        ENTITY entity = repository.findByIdAndDeleted(id, false).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
 
         logger.info("GetById ::: {} found with id {}", resourceName, id);
 
@@ -105,7 +105,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
 
     @Transactional(rollbackFor = Exception.class)
     public GET_DTO update(PK_TYPE id, UPDATE_DTO updateDto) {
-        ENTITY existing = repository.findById(id).orElseThrow(
+        ENTITY existing = repository.findByIdAndDeleted(id, false).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
 
         doValidate(updateDto);

@@ -111,8 +111,9 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         doValidate(updateDto);
         validateUpdateDto(updateDto, existing);
 
-        convertUpdateDtoToEntity(updateDto, existing);
         doUpdate(existing, updateDto);
+        convertUpdateDtoToEntity(updateDto, existing);
+
         ENTITY saved = save(existing);
 
         logger.info("Update ::: Updated {} with id {}", resourceName, id);

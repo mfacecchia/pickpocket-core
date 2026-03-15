@@ -51,8 +51,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
             throw new ValidationException(List.of(error));
         }
 
-        // FIXME: Name should be unique between the same account, not split
-        Optional<Goal> goals = ((GoalRepository) repository).findByNameAndSplitId(createDto.getName(), createDto.getSplitId());
+        Optional<Goal> goals = ((GoalRepository) repository).findByNameAndSplitAccountId(createDto.getName(), split.getAccountId());
 
         if (goals.isPresent()) {
             String message = String.format("%s with name %s already existing for this split", resourceName, createDto.getName());
@@ -80,8 +79,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
             throw new ValidationException(List.of(error));
         }
 
-        // FIXME: Name should be unique between the same account, not split
-        Optional<Goal> goal = ((GoalRepository) repository).findByNameAndSplitId(updateDto.getName(), updateDto.getSplitId());
+        Optional<Goal> goal = ((GoalRepository) repository).findByNameAndSplitAccountId(updateDto.getName(), split.getAccountId());
 
         if (goal.isPresent() && !goal.get().getSplitId().equals(existing.getSplitId())) {
             String message = String.format("%s with name %s already existing for this split", resourceName, updateDto.getName());

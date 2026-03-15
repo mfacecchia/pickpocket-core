@@ -10,5 +10,5 @@ public interface GoalRepository extends BaseRepository<Goal, Integer> {
 
     List<Goal> findAllBySplitId(Integer splitId);
 
-    Optional<Goal> findByNameAndSplitId(String name, Integer splitId);
+    Optional<Goal> findByNameAndSplitAccountId(String name, Integer accountId);
 }

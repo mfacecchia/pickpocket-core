@@ -13,7 +13,7 @@ public class GoalDto extends BaseGetDto {
     private String name;
     private Double targetAmount;
     private Double currentAmount;
-    private Boolean isCompleted;
+    private Boolean completed;
     private Instant completedAt;
     private Integer splitId;
 }

@@ -13,4 +13,8 @@ public interface SplitRepository extends BaseRepository<Split, Integer> {
     List<Split> findAllByAccountId(Integer accountId);
 
     Optional<Split> findByAccountIdAndIsDefaultTrue(Integer accountId);
+
+    List<Split> findAllByAccountUserId(Integer userId);
+
+    Optional<Split> findByIdAndAccountUserId(Integer id, Integer accountId);
 }

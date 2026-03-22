@@ -80,6 +80,7 @@ public class GoalController {
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "completed", required = false) Boolean completed,
             @RequestParam(name = "splitId", required = false) Integer splitId,
+            @RequestParam(name = "accountId", required = false) Integer accountId,
             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
             @RequestParam(name = "size", required = false) Integer size,
             @RequestParam(name = "sortBy", required = false, defaultValue = "name") String sortBy,
@@ -88,11 +89,12 @@ public class GoalController {
 
         Pageable pageable = PageableUtil.buildPageable(page, size, sortBy, sortDirection);
         CommonSpecificationBuilder<Goal> specificationBuilder = new CommonSpecificationBuilder<Goal>()
-                .in(Field.id.name(), ids, false)
-                .like(Field.name.name(), name, false)
-                .whereEqualTo(Field.completed.name(), completed, false)
-                .whereEqualTo(Field.splitId.name(), splitId, false)
-                .whereEqualTo(Field.deleted.name(), false, false);
+                .in(Field.id.getPath(), ids, false)
+                .like(Field.name.getPath(), name, false)
+                .whereEqualTo(Field.completed.getPath(), completed, false)
+                .whereEqualTo(Field.splitId.getPath(), splitId, false)
+                .whereEqualTo(Field.accountId.getPath(), accountId, false)
+                .whereEqualTo(Field.deleted.getPath(), false, false);
 
         GoalPageDto pageDto = goalService.getAll(specificationBuilder, pageable, showTotalPageCount);
         HttpStatus responseStatus = HttpStatus.OK;

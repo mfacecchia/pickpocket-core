@@ -144,6 +144,28 @@ public class GoalController {
         return ResponseEntity.status(responseStatus).body(response);
     }
 
+    @Operation(summary = "Completes a " + ITEM_NAME + " by its " + ID_NAME)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = ITEM_NAME + " was completed", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = SuccessResponse.class)) }),
+            @ApiResponse(responseCode = "404", description = ITEM_NAME + " does not exist", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "409", description = ITEM_NAME + " has already been completed", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) }),
+            @ApiResponse(responseCode = "500", description = "Generic server error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)) })
+    })
+    @PatchMapping("/{" + ID_NAME + "}/complete")
+    public ResponseEntity<SuccessResponse<GoalDto>> completeGoal(
+            @PathVariable(name = ID_NAME) Integer id) {
+        GoalDto dto = goalService.complete(id);
+
+        HttpStatus responseStatus = HttpStatus.OK;
+        SuccessResponse<GoalDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " was completed", dto);
+
+        return ResponseEntity.status(responseStatus).body(response);
+    }
+
     @Operation(summary = "Delete a " + ITEM_NAME + " by its " + ID_NAME)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = ITEM_NAME + " was deleted", content = {

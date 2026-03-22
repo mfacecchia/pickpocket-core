@@ -17,6 +17,7 @@ import com.feis.splitnings.features.split.data.Split;
 import com.feis.splitnings.features.split.service.SplitReadService;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -168,7 +169,29 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         repository.saveAll(accountGoals);
     }
 
-    // TODO: Add complete goal method
+    public GoalDto complete(Integer goalId) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
+
+        if (goal.getCurrentAmount() < goal.getTargetAmount()) {
+            throw new ForbiddenOperationException("Cannot complete this goal. The target has not yet been reached.");
+        }
+
+        if (goal.getCompleted()) {
+            Error error = new Error(InternalErrorCode.CONFLICT, "Cannot complete this goal. It appears as already completed.");
+            throw new ConflictException(error);
+        }
+
+        goal.setCompleted(true);
+        goal.setCompletedAt(Instant.now());
+
+        repository.save(goal);
+
+        return mapper.mapToDto(goal);
+    }
+
+    // TODO: Undo goal completion method
 
     @Transactional(rollbackFor = Exception.class)
     @Override

@@ -1,6 +1,7 @@
 package com.feis.splitnings.common.specification;
 
 import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,11 +119,11 @@ public class CommonSpecificationBuilder<ENTITY> {
         return where(searchCriteria);
     }
 
-    public CommonSpecificationBuilder<ENTITY> in(String key, List<Object> values, boolean isOrPredicate) {
+    public CommonSpecificationBuilder<ENTITY> in(String key, List<?> values, boolean isOrPredicate) {
         return where(key, SearchCriteriaType.IN, values, isOrPredicate);
     }
 
-    public CommonSpecificationBuilder<ENTITY> notIn(String key, List<Object> values, boolean isOrPredicate) {
+    public CommonSpecificationBuilder<ENTITY> notIn(String key, List<?> values, boolean isOrPredicate) {
         return where(key, SearchCriteriaType.NOT_IN, values, isOrPredicate);
     }
 

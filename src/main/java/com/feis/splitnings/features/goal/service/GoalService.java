@@ -191,7 +191,24 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         return mapper.mapToDto(goal);
     }
 
-    // TODO: Undo goal completion method
+    public GoalDto uncomplete(Integer goalId) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
+
+        if (!goal.getCompleted()) {
+            Error error = new Error(InternalErrorCode.CONFLICT, "Cannot uncomplete this goal. It's already active.");
+            throw new ConflictException(error);
+        }
+
+        goal.setCompleted(false);
+        goal.setCompletedAt(null);
+        updateGoalAmount(goal, goal.getSplit().getAvailableAmount());
+
+        repository.save(goal);
+
+        return mapper.mapToDto(goal);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override

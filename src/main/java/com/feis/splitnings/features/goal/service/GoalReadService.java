@@ -14,16 +14,22 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class GoalReadService {
     private final GoalRepository goalRepository;
+    private final String resourceName = "Goal";
 
     public Goal getById(Integer id) {
         return goalRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Goal", id.toString()));
+                () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 
     // Returns a list of goals from the specificed `accountId`
     // and EAGER fetches associated Split for each goal
     public List<Goal> getAllNotCompletedByAccountIdFetchSplit(Integer accountId) {
         return goalRepository.findAllNotCompletedByAccountIdFetchSplit(accountId);
+    }
+
+    public Goal getByIdAndUserId(Integer id, Integer userId) {
+        return goalRepository.findByIdAndSplitAccountUserIdAndDeletedFalse(id, userId).orElseThrow(
+                () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 }
 

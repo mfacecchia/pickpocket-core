@@ -153,7 +153,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
     @Transactional(rollbackFor = Exception.class)
     public void updateGoalsAmountByAccountId(Integer accountId) {
-        List<Goal> accountGoals = goalReadService.getAllByAccountIdFetchSplit(accountId);
+        List<Goal> accountGoals = goalReadService.getAllNotCompletedByAccountIdFetchSplit(accountId);
 
         logger.info("UpdateGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
 

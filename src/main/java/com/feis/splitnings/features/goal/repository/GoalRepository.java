@@ -10,17 +10,15 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface GoalRepository extends BaseRepository<Goal, Integer> {
 
-    List<Goal> findAllBySplitId(Integer splitId);
-
     Optional<Goal> findByNameAndSplitAccountId(String name, Integer accountId);
-
-    List<Goal> findAllBySplitAccountId(Integer accountId);
 
     @Query("""
         SELECT g
         FROM goal g
         JOIN FETCH g.split s
         WHERE s.accountId = :accountId
+        AND g.deleted = false
+        AND g.completed = false
     """)
-    List<Goal> findAllByAccountIdFetchSplit(Integer accountId);
+    List<Goal> findAllNotCompletedByAccountIdFetchSplit(Integer accountId);
 }

@@ -22,8 +22,8 @@ public class GoalReadService {
 
     // Returns a list of goals from the specificed `accountId`
     // and EAGER fetches associated Split for each goal
-    public List<Goal> getAllByAccountIdFetchSplit(Integer accountId) {
-        return goalRepository.findAllByAccountIdFetchSplit(accountId);
+    public List<Goal> getAllNotCompletedByAccountIdFetchSplit(Integer accountId) {
+        return goalRepository.findAllNotCompletedByAccountIdFetchSplit(accountId);
     }
 }
 

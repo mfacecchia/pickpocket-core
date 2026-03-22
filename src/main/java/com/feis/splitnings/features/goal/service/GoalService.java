@@ -30,12 +30,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, GoalUpdateDto, GoalPageDto, Integer> {
     private final SplitReadService splitReadService;
+    private final GoalReadService goalReadService;
 
-    public GoalService(GoalMapper goalMapper, GoalRepository goalRepository, SplitReadService splitReadService) {
+    public GoalService(GoalMapper goalMapper, GoalRepository goalRepository, SplitReadService splitReadService,
+            GoalReadService goalReadService) {
 
         this.mapper = goalMapper;
         this.repository = goalRepository;
         this.splitReadService = splitReadService;
+        this.goalReadService = goalReadService;
         this.resourceName = "Goal";
     }
 
@@ -148,9 +151,24 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
-    // TODO: Add complete goal method
+    @Transactional(rollbackFor = Exception.class)
+    public void updateGoalsAmountByAccountId(Integer accountId) {
+        List<Goal> accountGoals = goalReadService.getAllByAccountIdFetchSplit(accountId);
 
-    // TODO: Add update goal amount method (called whenever the split gets updated)
+        logger.info("UpdateGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
+
+        accountGoals.forEach((goal) -> {
+            double goalPrevAmount = goal.getCurrentAmount();
+
+            updateGoalAmount(goal, goal.getSplit().getAvailableAmount());
+
+            logger.info("UpdateGoalsAmountByAccountId ::: Updated goal {} amount. {}, was {}", goal.getId(), goal.getCurrentAmount(), goalPrevAmount);
+        });
+
+        repository.saveAll(accountGoals);
+    }
+
+    // TODO: Add complete goal method
 
     @Transactional(rollbackFor = Exception.class)
     @Override

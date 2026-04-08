@@ -31,5 +31,9 @@ public class GoalReadService {
         return goalRepository.findByIdAndSplitAccountUserIdAndDeletedFalse(id, userId).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
+
+    public List<Goal> getBySplitId(Integer splitId) {
+        return goalRepository.findBySplitIdAndDeletedFalse(splitId);
+    }
 }
 

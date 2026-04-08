@@ -23,4 +23,6 @@ public interface GoalRepository extends BaseRepository<Goal, Integer> {
     List<Goal> findAllNotCompletedByAccountIdFetchSplit(Integer accountId);
 
     Optional<Goal> findByIdAndSplitAccountUserIdAndDeletedFalse(Integer id, Integer userId);
+
+    List<Goal> findBySplitIdAndDeletedFalse(Integer splitId);
 }

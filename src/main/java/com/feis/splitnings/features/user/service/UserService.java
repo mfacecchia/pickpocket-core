@@ -32,7 +32,7 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
         this.resourceName = "User";
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public UserDto createFromJwt() {
         UserCreateDto createDto = ((UserMapper) mapper).mapJwtDtoToCreateDto();
 

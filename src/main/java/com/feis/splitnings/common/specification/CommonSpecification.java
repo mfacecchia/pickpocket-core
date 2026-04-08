@@ -7,14 +7,18 @@ import com.feis.splitnings.common.exception.errors.Error;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,48 +31,47 @@ public class CommonSpecification<MODEL> implements Specification<MODEL> {
         this.criteria = criteria;
     }
 
-    // TODO: Review
     @Override
     public Predicate toPredicate(Root<MODEL> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
         switch (criteria.getOperation()) {
             case EQUAL_TO -> {
-                return builder.equal(root.get(criteria.getKey()), (criteria.getValue()));
+                return builder.equal(getPath(root), criteria.getValue());
             }
             case NOT_EQUAL_TO -> {
-                return builder.notEqual(root.get(criteria.getKey()), criteria.getValue().toString());
+                return builder.notEqual(getPath(root), criteria.getValue().toString());
             }
             case GREATER_THAN -> {
                 return builder.greaterThan(
-                        root.get(criteria.getKey()), criteria.getValue().toString());
+                        getPath(root), criteria.getValue().toString());
             }
             case GREATER_THAN_OR_EQUAL_TO -> {
                 return builder.greaterThanOrEqualTo(
-                        root.get(criteria.getKey()), criteria.getValue().toString());
+                        getPath(root), criteria.getValue().toString());
             }
             case LESS_THAN -> {
                 return builder.lessThan(
-                        root.get(criteria.getKey()), criteria.getValue().toString());
+                        getPath(root), criteria.getValue().toString());
             }
             case LESS_THAN_OR_EQUAL_TO -> {
                 return builder.lessThanOrEqualTo(
-                        root.get(criteria.getKey()), criteria.getValue().toString());
+                        getPath(root), criteria.getValue().toString());
             }
             case LIKE -> {
                 return builder.like(
-                        builder.lower(root.get(criteria.getKey())),
+                        builder.lower(getPath(root)),
                         "%" + criteria.getValue().toString().toLowerCase() + "%"
                 );
             }
             case BETWEEN -> {
                 return builder.between(
-                        root.get(criteria.getKey()),
+                        getPath(root),
                         criteria.getValue().toString(),
                         criteria.getValue2().toString());
             }
             case IN -> {
                 if (criteria.getValue() instanceof List<?> values) {
-                    CriteriaBuilder.In<Object> inClause = builder.in(root.get(criteria.getKey()));
+                    CriteriaBuilder.In<Object> inClause = builder.in(getPath(root));
                     // add all values to the IN clause
                     for (Object value : values) {
                         inClause.value(value);
@@ -83,7 +86,7 @@ public class CommonSpecification<MODEL> implements Specification<MODEL> {
             }
             case NOT_IN -> {
                 if (criteria.getValue() instanceof List<?> values) {
-                    CriteriaBuilder.In<Object> inClause = builder.in(root.get(criteria.getKey()));
+                    CriteriaBuilder.In<Object> inClause = builder.in(getPath(root));
 
                     // add all values to the IN clause
                     for (Object value : values) {
@@ -99,40 +102,53 @@ public class CommonSpecification<MODEL> implements Specification<MODEL> {
                     throw baseException;
                 }
             }
-
             case DATE_TO -> {
                 switch (criteria.getValue()) {
                     case Instant i -> {
-                        return builder.lessThanOrEqualTo(root.get(criteria.getKey()), i);
+                        return builder.lessThanOrEqualTo(getPath(root), i);
                     }
                     case LocalDateTime ldt -> {
-                        return builder.lessThanOrEqualTo(root.get(criteria.getKey()), ldt);
+                        return builder.lessThanOrEqualTo(getPath(root), ldt);
                     }
                     case LocalDate ld -> {
-                        return builder.lessThanOrEqualTo(root.get(criteria.getKey()), ld);
+                        return builder.lessThanOrEqualTo(getPath(root), ld);
                     }
-                    default ->
+                    default -> {
                         throw new RuntimeException("Unmanaged type passed as SearchCriteria DATE_TO" + criteria.getValue().getClass().getName());
+                    }
                 }
             }
             case DATE_FROM -> {
                 switch (criteria.getValue()) {
                     case Instant i -> {
-                        return builder.greaterThanOrEqualTo(root.get(criteria.getKey()), i);
+                        return builder.greaterThanOrEqualTo(getPath(root), i);
                     }
                     case LocalDateTime ldt -> {
-                        return builder.greaterThanOrEqualTo(root.get(criteria.getKey()), ldt);
+                        return builder.greaterThanOrEqualTo(getPath(root), ldt);
                     }
                     case LocalDate ld -> {
-                        return builder.greaterThanOrEqualTo(root.get(criteria.getKey()), ld);
+                        return builder.greaterThanOrEqualTo(getPath(root), ld);
                     }
-                    default ->
+                    default -> {
                         throw new RuntimeException("Unmanaged type passed as SearchCriteria DATE_FROM" + criteria.getValue().getClass().getName());
+                    }
                 }
             }
             default -> {
                 return null;
             }
         }
+    }
+
+    private <T> Path<T> getPath(Root<MODEL> root) {
+        List<String> pathItems = Arrays.asList(criteria.getKey().split("\\."));
+
+        Path<T> path = root.get(pathItems.getFirst());
+
+        for (int i = 1; i < pathItems.size(); i++) {
+            path = path.get(pathItems.get(i));
+        }
+
+        return path;
     }
 }

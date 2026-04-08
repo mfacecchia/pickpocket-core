@@ -8,6 +8,7 @@ import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
@@ -48,7 +49,7 @@ public class Split extends BaseEntity {
     /* ---RELATIONSHIPS--- */
 
     @JoinColumn(name = "account_id", nullable = false, insertable = false, updatable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Account account;
 }
 

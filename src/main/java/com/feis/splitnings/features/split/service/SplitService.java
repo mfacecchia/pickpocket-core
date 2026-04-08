@@ -9,6 +9,8 @@ import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.features.account.data.Account;
 import com.feis.splitnings.features.account.service.AccountReadService;
+import com.feis.splitnings.features.goal.data.Goal;
+import com.feis.splitnings.features.goal.service.GoalReadService;
 import com.feis.splitnings.features.split.data.Split;
 import com.feis.splitnings.features.split.data.dto.request.SplitCreateDto;
 import com.feis.splitnings.features.split.data.dto.request.SplitUpdateDto;
@@ -36,14 +38,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDto, SplitUpdateDto, SplitPageDto, Integer> {
     private final AccountReadService accountReadService;
     private final SplitReadService splitReadService;
+    private final GoalReadService goalReadService;
 
     private final static Logger logger = LogManager.getLogger(SplitService.class);
 
-    public SplitService(SplitMapper splitMapper, SplitRepository splitRepository, AccountReadService accountReadService, SplitReadService splitReadService) {
+    public SplitService(SplitMapper splitMapper, SplitRepository splitRepository, AccountReadService accountReadService,
+            SplitReadService splitReadService, GoalReadService goalReadService) {
+
         this.mapper = splitMapper;
         this.repository = splitRepository;
         this.accountReadService = accountReadService;
         this.splitReadService = splitReadService;
+        this.goalReadService = goalReadService;
         this.resourceName = "Split";
     }
 
@@ -100,6 +106,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         });
     }
 
+    // TODO: Remove this override as ordering changed on the AbstractService itself
     @Transactional(rollbackFor = Exception.class)
     @Override
     public SplitDto update(Integer id, SplitUpdateDto updateDto) {
@@ -187,6 +194,12 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         // This checks whether the account is owned by the current user.
         // If not, the calling method will throw a `ResourceNotFoundException`
         accountReadService.getByIdAndUserId(split.getAccountId(), SecurityUtils.getJwtUserId());
+
+        List<Goal> linkedGoals = goalReadService.getBySplitId(id);
+
+        if (!linkedGoals.isEmpty()) {
+            throw new ForbiddenOperationException("Delete or move linked goals before proceeding.");
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.feis.splitnings.features.issuedPaycheck.orchestrator;
 
 import com.feis.splitnings.features.account.service.AccountService;
+import com.feis.splitnings.features.goal.service.GoalService;
 import com.feis.splitnings.features.issuedPaycheck.data.dto.request.IssuedPaycheckCreateDto;
 import com.feis.splitnings.features.issuedPaycheck.data.dto.response.IssuedPaycheckDto;
 import com.feis.splitnings.features.issuedPaycheck.service.IssuedPaycheckService;
@@ -17,6 +18,7 @@ public class AccountIssuedPaycheckOrchestrator {
     private final AccountService accountService;
     private final SplitService splitService;
     private final IssuedPaycheckService issuedPaycheckService;
+    private final GoalService goalService;
 
     @Transactional(rollbackFor = Exception.class)
     public IssuedPaycheckDto issueManualPaycheck(IssuedPaycheckCreateDto issuedPaycheckCreateDto) {
@@ -25,6 +27,8 @@ public class AccountIssuedPaycheckOrchestrator {
 
         accountService.topUpAccount(accountId, issuedAmount);
         splitService.topUpByAmountAndAccountId(accountId, issuedAmount);
+        goalService.updateGoalsAmountByAccountId(accountId);
+
         return issuedPaycheckService.create(issuedPaycheckCreateDto);
     }
 }

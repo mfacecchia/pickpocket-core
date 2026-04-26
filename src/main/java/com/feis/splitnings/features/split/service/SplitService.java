@@ -201,7 +201,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         Optional<Split> split = ((SplitRepository) repository).findByNameAndAccountId(updateDto.getName(), existing.getAccountId());
 
-       if (split.isPresent() && !split.get().getId().equals(existing.getId())) {
+        if (split.isPresent() && !split.get().getId().equals(existing.getId())) {
             String message = String.format("%s with name %s already existing for this account", resourceName, updateDto.getName());
             Error error = new Error(InternalErrorCode.CONFLICT, message);
             throw new ConflictException(error);

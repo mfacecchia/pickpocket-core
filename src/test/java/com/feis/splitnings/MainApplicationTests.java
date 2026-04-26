@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 class MainApplicationTests {
 
-	@Test
-	void contextLoads() {
-		assertTrue(true);
-	}
+    @Test
+    void contextLoads() {
+        assertTrue(true);
+    }
 }

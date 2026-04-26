@@ -77,7 +77,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     }
 
     /**
-     * Updates theoretical && actual amounts for all the
+     * Updates theoretical && available amounts for all the
      * splits in an account based on the provided `topUpAmount`
      * considering defined percentages for each split.
      */
@@ -102,7 +102,50 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
             repository.save(split);
 
-            logger.info("TopUpByAmountAndAccountId ::: Updated split {} amounts.\nTheoretical amount: {}, was {}\nActual amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
+            logger.info("TopUpByAmountAndAccountId ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
+        });
+    }
+
+    /**
+     * Updates the specified split available amount
+     * based on the provided `chargeAmount`.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void chargeSplit(Integer id, Double chargeAmount) {
+        Split split = splitReadService.getById(id);
+
+        Double previousAvailableAmount = split.getAvailableAmount();
+
+        split.setAvailableAmount(split.getAvailableAmount() - chargeAmount);
+
+        repository.save(split);
+
+        logger.info("ChargeSplit ::: Updated split {} available amount to {}. Was {}", split.getId(), split.getAvailableAmount(), previousAvailableAmount);
+    }
+
+    /**
+     * Updates theoretical amount for all the
+     * splits in an account based on the up-to-date account wealth
+     * considering defined percentages for each split.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void refreshTheoreticalAmountsByAccountId(Integer accountId) {
+        Account account = accountReadService.getById(accountId);
+
+        List<Split> accountSplits = splitReadService.getAllByAccountId(accountId);
+
+        logger.info("RefreshTheoreticalAmountsByAccountId ::: Updating amounts for {} splits from account {}", accountSplits.size(), accountId);
+
+        accountSplits.forEach((split) -> {
+            Double previousTheoreticalAmount = split.getTheoreticalAmount();
+            Short splitPercentage = split.getSplitPercentage();
+
+            Double updatedTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), splitPercentage);
+            split.setTheoreticalAmount(updatedTheoreticalAmount);
+
+            repository.save(split);
+
+            logger.info("RefreshTheoreticalAmountsByAccountId ::: Updated split {} theoretical amount to {}. Was {}.", split.getId(), updatedTheoreticalAmount, previousTheoreticalAmount);
         });
     }
 

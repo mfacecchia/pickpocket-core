@@ -15,10 +15,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class SplitReadService {
     private final SplitRepository splitRepository;
+    private final String resourceName = "Split";
 
     public Split getById(Integer id) {
         return splitRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Split", id.toString()));
+                () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 
     public List<Split> getAllByAccountId(Integer accountId) {
@@ -33,7 +34,7 @@ public class SplitReadService {
         Optional<Split> split = splitRepository.findByIdAndAccountUserId(id, userId);
 
         if (split.isEmpty() || (includeDeleted && split.get().getDeleted())) {
-            throw new ResourceNotFoundException("Split", id.toString());
+            throw new ResourceNotFoundException(resourceName, id.toString());
         }
 
         return split.get();

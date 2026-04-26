@@ -170,6 +170,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     public GoalDto complete(Integer goalId) {
+        // TODO: Create purchase on goal completion
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
@@ -192,6 +193,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     public GoalDto uncomplete(Integer goalId) {
+        // TODO: Delete linked purchase on goal uncomplete
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);

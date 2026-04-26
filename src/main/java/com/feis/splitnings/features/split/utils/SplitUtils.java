@@ -20,13 +20,13 @@ public class SplitUtils {
     }
 
     /**
-     * Computes split theoretical amount.
+     * Computes split amount (either theoretical or available).
      *
-     * Similar to the other utility method (`computeSplitAmount`), you'd prefer
+     * Similar to the other overload method, you'd prefer
      * using this when you want to calculate the split amount without considering
      * its previous value.
      */
-    public static double computeSplitTheoreticalAmount(double accountWealth, short splitPercentage) {
+    public static double computeSplitAmount(double accountWealth, short splitPercentage) {
         return (accountWealth * splitPercentage) / 100;
     }
 

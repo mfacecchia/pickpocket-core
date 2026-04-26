@@ -59,12 +59,34 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
 
         Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
 
+        Double previousWealth = account.getWealth();
+
         account.setWealth(account.getWealth() + topUpAmount);
         account.setModifiedBy(jwtUserId.toString());
 
         repository.save(account);
 
-        logger.info("Updated account {} wealth to {}", accountId, account.getWealth());
+        logger.info("TopUpAccount ::: Updated account {} wealth to {}. Was {}", accountId, account.getWealth(), previousWealth);
+
+        return convertToDto(account);
+    }
+
+    // TODO: This method is kind of repetitive compared to
+    // `topUpAccount`. Maybe refactor it?
+    @Transactional(rollbackOn = Exception.class)
+    public AccountDto chargeAccount(Integer accountId, Double chargeAmount) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
+
+        Double previousWealth = account.getWealth();
+
+        account.setWealth(account.getWealth() - chargeAmount);
+        account.setModifiedBy(jwtUserId.toString());
+
+        repository.save(account);
+
+        logger.info("ChargeAccount ::: Updated account {} wealth to {}. Was {}", accountId, account.getWealth(), previousWealth);
 
         return convertToDto(account);
     }

@@ -241,7 +241,8 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         List<Goal> linkedGoals = goalReadService.getBySplitId(id);
 
         if (!linkedGoals.isEmpty()) {
-            throw new ForbiddenOperationException("Delete or move linked goals before proceeding.");
+            Error error = new Error(InternalErrorCode.CONFLICT, "Delete or move linked goals before proceeding.");
+            throw new ValidationException(List.of(error));
         }
     }
 

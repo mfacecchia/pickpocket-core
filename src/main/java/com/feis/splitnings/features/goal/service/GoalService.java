@@ -2,7 +2,6 @@ package com.feis.splitnings.features.goal.service;
 
 import com.feis.splitnings.common.exception.errors.Error;
 import com.feis.splitnings.common.exception.ConflictException;
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.service.AbstractService;
@@ -69,7 +68,8 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         if (existing.getCompleted()) {
-            throw new ForbiddenOperationException("Cannot update an already completed goal.");
+            Error error = new Error(InternalErrorCode.CONFLICT, "Cannot update an already completed goal.");
+            throw new ValidationException(List.of(error));
         }
 
         // This will throw a `ResourceNotFoundException` if not found,
@@ -176,7 +176,8 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
 
         if (goal.getCurrentAmount() < goal.getTargetAmount()) {
-            throw new ForbiddenOperationException("Cannot complete this goal. The target has not yet been reached.");
+            Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "Cannot complete this goal. The target has not yet been reached.");
+            throw new ValidationException(List.of(error));
         }
 
         if (goal.getCompleted()) {

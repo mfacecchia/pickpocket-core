@@ -1,6 +1,8 @@
 package com.feis.splitnings.features.purchase.service;
 
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
+import com.feis.splitnings.common.exception.ValidationException;
+import com.feis.splitnings.common.exception.enums.InternalErrorCode;
+import com.feis.splitnings.common.exception.errors.Error;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.features.purchase.data.Purchase;
 import com.feis.splitnings.features.purchase.data.dto.request.PurchaseCreateDto;
@@ -40,7 +42,8 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         Split split = splitReadService.getById(createDto.getSplitId());
 
         if (!split.getActive()) {
-            throw new ForbiddenOperationException("The linked split is inactive. Reactivate it before proceeding.");
+            Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "The linked split is inactive. Reactivate it before proceeding.");
+            throw new ValidationException(List.of(error));
         }
     }
 

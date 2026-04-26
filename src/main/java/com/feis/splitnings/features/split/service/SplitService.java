@@ -280,7 +280,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         updateDefaultSplit(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1), jwtUserId.toString());
 
         Account account = accountReadService.getById(toCreate.getAccountId());
-        double splitTheoreticalAmount = SplitUtils.computeSplitTheoreticalAmount(account.getWealth(), toCreate.getSplitPercentage());
+        double splitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), toCreate.getSplitPercentage());
         toCreate.setAvailableAmount(0.00);
         toCreate.setTheoreticalAmount(splitTheoreticalAmount);
 
@@ -300,7 +300,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         updateDefaultSplit(toUpdate.getAccountId(), defaultSplitPercentageIncrBy, jwtUserId.toString());
 
         Account account = accountReadService.getById(toUpdate.getAccountId());
-        double splitTheoreticalAmount = SplitUtils.computeSplitTheoreticalAmount(account.getWealth(), updateDto.getSplitPercentage());
+        double splitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), updateDto.getSplitPercentage());
         toUpdate.setTheoreticalAmount(splitTheoreticalAmount);
 
         toUpdate.setModifiedBy(jwtUserId.toString());
@@ -338,7 +338,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         Account account = accountReadService.getById(accountId);
 
-        double updatedDefaultSplitTheoreticalAmount = SplitUtils.computeSplitTheoreticalAmount(account.getWealth(), updatedDefaultSplitPercentage);
+        double updatedDefaultSplitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), updatedDefaultSplitPercentage);
         defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
 
         defaultSplit.setModifiedBy(auditor);

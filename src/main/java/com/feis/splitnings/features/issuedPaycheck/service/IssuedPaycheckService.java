@@ -58,6 +58,9 @@ public class IssuedPaycheckService extends AbstractService<IssuedPaycheck, Issue
         toCreate.setModifiedBy(jwtUserId.toString());
     }
 
+    // TODO: What about overriding the update method
+    // to completely disable it?
+
     // NOTE: This operation is not expected to be triggered as
     // it's not intended to be updated. Implemented this just for
     // consistency.

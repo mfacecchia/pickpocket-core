@@ -20,6 +20,7 @@ public class KeycloakConfig {
     private String password;
     private String clientId;
 
+    // TODO: Use system user with custom client
     @Bean
     public Keycloak keycloak() {
         return KeycloakBuilder.builder()

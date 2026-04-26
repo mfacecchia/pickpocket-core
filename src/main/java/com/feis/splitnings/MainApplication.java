@@ -15,12 +15,12 @@ import org.springframework.context.event.EventListener;
 public class MainApplication {
     private static final Logger logger = LogManager.getLogger(MainApplication.class);
 
-	public static void main(String[] args) {
-		SpringApplication.run(MainApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MainApplication.class, args);
+    }
 
-	@EventListener(ApplicationReadyEvent.class)
-	public void doSomethingAfterStartup() {
-		logger.info("------------------ APP INIT ------------------");
-	}
+    @EventListener(ApplicationReadyEvent.class)
+    public void doSomethingAfterStartup() {
+        logger.info("------------------ APP INIT ------------------");
+    }
 }

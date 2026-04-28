@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -56,38 +57,46 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     }
 
     public PAGEABLE_DTO getAll(CommonSpecificationBuilder<ENTITY> specificationBuilder, Pageable pageable, boolean showTotalCount) {
+        specificationBuilder.whereEqualTo("deleted", false, false);
+
         Specification<ENTITY> specification = specificationBuilder.build();
 
+        List<ENTITY> entities;
         if (pageable != null) {
-            Page<ENTITY> entityPage = repository.findAll(specification, pageable);
-
-            Page<GET_DTO> entityDtoPage = doFilter(entityPage).map(mapper::mapToDto);
-
-            PAGEABLE_DTO pageableDto = convertToPageDto(entityDtoPage);
-
-            if (showTotalCount) {
-                long totalCount = entityDtoPage.getTotalElements();
-                pageableDto.setTotalCount(totalCount);
-            }
-
-            logger.info("GetAll ::: Found {} total results. Displaying first {} items", entityDtoPage.getTotalElements(), entityDtoPage.getNumberOfElements());
-
-            return pageableDto;
-        }
-
-        List<ENTITY> itemsList = repository.findAll(specification);
-
-        Page<GET_DTO> itemsPage;
-        if (itemsList.isEmpty()) {
-            itemsPage = Page.empty();
+            entities = repository.findAll(specification, pageable.getSort());
         } else {
-            pageable = PageRequest.of(0, itemsList.size());
-            itemsPage = doFilter(new PageImpl<>(itemsList, pageable, itemsList.size())).map(mapper::mapToDto);
+            entities = repository.findAll(specification);
         }
 
-        logger.info("GetAll ::: Found {} total results. Displaying first {} items", itemsPage.getTotalElements(), itemsPage.getNumberOfElements());
+        entities = doFilter(entities);
 
-        return convertToPageDto(itemsPage);
+        if (entities.isEmpty()) {
+            logger.info("GetAll ::: No entries were found with the given parameters. Returning an empty page.");
+            return convertToPageDto(Page.empty());
+        }
+
+        if (pageable == null) {
+            pageable = PageRequest.of(0, entities.size());
+        }
+
+        List<GET_DTO> entitiesSplit = getEntitiesPage(entities, pageable).stream()
+                .map(this::convertToDto)
+                .toList();
+
+        Page<GET_DTO> page = new PageImpl<>(entitiesSplit, pageable, entities.size());
+
+        PAGEABLE_DTO dto = convertToPageDto(page);
+
+        if (showTotalCount) {
+            dto.setTotalCount(page.getTotalElements());
+        } else {
+            dto.setTotalCount(null);
+        }
+
+        int pageNumber = page.getPageable().getPageNumber();
+        logger.info("GetAll ::: Found {} total results. Displaying first {} items on page {}", entities.size(), page.getNumberOfElements(), pageNumber);
+
+        return dto;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -166,7 +175,12 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         }
     }
 
-    protected  Page<ENTITY> doFilter(Page<ENTITY> entityPage) {
+    // Override this if you expect filtering based on
+    // user roles or so
+    protected  List<ENTITY> doFilter(List<ENTITY> entityPage) {
+        if (entityPage == null) {
+            return new ArrayList<>();
+        }
         return entityPage;
     }
 
@@ -203,5 +217,26 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
 
     public UPDATE_DTO convertToUpdateDto(ENTITY entity) {
         return mapper.mapToUpdateDto(entity);
+    }
+
+    /**
+     * Splits the provided list to the required
+     * page, returning a portion of the same list.
+     */
+    private List<ENTITY> getEntitiesPage(List<ENTITY> entities, Pageable pageable) {
+        if (pageable == null) {
+            return entities;
+        }
+
+        if (entities.size() <= pageable.getOffset()) {
+            return new ArrayList<>();
+        }
+
+        int start = (int) pageable.getOffset();
+
+        int endIndex = start + pageable.getPageSize();
+        int end = Math.min(endIndex, entities.size());
+
+        return entities.subList(start, end);
     }
 }

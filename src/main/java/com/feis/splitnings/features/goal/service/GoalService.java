@@ -17,13 +17,13 @@ import com.feis.splitnings.features.split.service.SplitReadService;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.time.Instant;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,8 +102,11 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     @Override
-    protected Page<Goal> doFilter(Page<Goal> entityPage) {
-        if (entityPage == null || entityPage.isEmpty()) {
+    protected List<Goal> doFilter(List<Goal> entityPage) {
+        if (entityPage == null) {
+            return new ArrayList<>();
+        }
+        if (entityPage.isEmpty()) {
             return entityPage;
         }
 
@@ -114,11 +117,11 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
                 .collect(Collectors.toSet());
 
         // Returning only goals which belong to the requesting user
-        List<Goal> filtered = entityPage.get()
+        List<Goal> filtered = entityPage.stream()
                 .filter((entity) -> userSplitIds.contains(entity.getSplitId()))
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(filtered, entityPage.getPageable(), filtered.size());
+        return filtered;
     }
 
     @Transactional(rollbackFor = Exception.class)

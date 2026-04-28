@@ -15,12 +15,11 @@ import com.feis.splitnings.features.split.data.Split;
 import com.feis.splitnings.features.split.service.SplitReadService;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PurchaseService extends AbstractService<Purchase, PurchaseDto, PurchaseCreateDto, PurchaseUpdateDto, PurchasePageDto, Integer> {
     private final SplitReadService splitReadService;
 
-    public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService,
-            PurchaseReadService purchaseReadService) {
+    public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService) {
 
         this.mapper = purchaseMapper;
         this.repository = purchaseRepository;
@@ -61,8 +59,11 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
     }
 
     @Override
-    protected Page<Purchase> doFilter(Page<Purchase> entityPage) {
-        if (entityPage == null || entityPage.isEmpty()) {
+    protected List<Purchase> doFilter(List<Purchase> entityPage) {
+        if (entityPage == null) {
+            return new ArrayList<>();
+        }
+        if (entityPage.isEmpty()) {
             return entityPage;
         }
 
@@ -73,11 +74,11 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
                 .collect(Collectors.toSet());
 
         // Returning only purchases which belong to the requesting user
-        List<Purchase> filtered = entityPage.get()
+        List<Purchase> filtered = entityPage.stream()
                 .filter((entity) -> userSplitIds.contains(entity.getSplitId()))
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(filtered, entityPage.getPageable(), filtered.size());
+        return filtered;
     }
 
     @Transactional(rollbackFor = Exception.class)

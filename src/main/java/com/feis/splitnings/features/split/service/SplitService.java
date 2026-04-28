@@ -21,6 +21,7 @@ import com.feis.splitnings.features.split.repository.SplitRepository;
 import com.feis.splitnings.features.split.utils.SplitUtils;
 import com.feis.splitnings.security.utils.SecurityUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,8 +30,6 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -252,8 +251,11 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     }
 
     @Override
-    protected Page<Split> doFilter(Page<Split> entityPage) {
-        if (entityPage == null || entityPage.isEmpty()) {
+    protected List<Split> doFilter(List<Split> entityPage) {
+        if (entityPage == null) {
+            return new ArrayList<>();
+        }
+        if (entityPage.isEmpty()) {
             return entityPage;
         }
 
@@ -264,11 +266,11 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
                 .collect(Collectors.toSet());
 
         // Returning only splits which belong to the requesting user
-        List<Split> filtered = entityPage.get()
+        List<Split> filtered = entityPage.stream()
                 .filter((entity) -> userAccountIds.contains(entity.getAccountId()))
                 .collect(Collectors.toList());
 
-        return new PageImpl<Split>(filtered, entityPage.getPageable(), filtered.size());
+        return filtered;
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -11,5 +11,5 @@ import lombok.Setter;
 public class BasePageDto<DTO> {
     public List<DTO> content = new ArrayList<>();
     private int pageElements;
-    private long totalCount;
+    private Long totalCount;
 }

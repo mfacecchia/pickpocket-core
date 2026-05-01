@@ -39,4 +39,10 @@ public class SplitReadService {
 
         return split.get();
     }
+
+    public Split getByIdAndAccountId(Integer id, Integer accountId) {
+        return splitRepository.getByIdAndAccountId(id, accountId).orElseThrow(
+                () -> new ResourceNotFoundException(resourceName, id.toString()));
+    }
+
 }

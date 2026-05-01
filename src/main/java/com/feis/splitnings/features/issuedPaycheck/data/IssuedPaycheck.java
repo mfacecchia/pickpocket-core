@@ -3,6 +3,7 @@ package com.feis.splitnings.features.issuedPaycheck.data;
 import com.feis.splitnings.common.data.entity.BaseEntity;
 import com.feis.splitnings.features.account.data.Account;
 import com.feis.splitnings.features.paycheck.data.Paycheck;
+import com.feis.splitnings.features.split.data.Split;
 
 import java.time.Instant;
 
@@ -41,6 +42,9 @@ public class IssuedPaycheck extends BaseEntity {
     @Column(name = "account_id", nullable = false)
     private Integer accountId;
 
+    @Column(name = "split_id", nullable = true)
+    private Integer splitId;
+
     /* ---RELATIONSHIPS--- */
 
     @JoinColumn(name = "paycheck_id", insertable = false, updatable = false)
@@ -50,5 +54,9 @@ public class IssuedPaycheck extends BaseEntity {
     @JoinColumn(name = "account_id", nullable = false, insertable = false, updatable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Account account;
+
+    @JoinColumn(name = "split_id", nullable = true, insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Split split;
 }
 

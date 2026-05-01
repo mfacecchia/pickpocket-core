@@ -23,6 +23,7 @@ public class IssuedPaycheckMapper implements BaseMapper<IssuedPaycheck, IssuedPa
         entity.setSuccessful(dto.getSuccessful());
         entity.setPaycheckId(dto.getPaycheckId());
         entity.setAccountId(dto.getAccountId());
+        entity.setSplitId(dto.getSplitId());
 
         // Auditing
         entity.setCreatedBy(dto.getCreatedBy());
@@ -44,6 +45,7 @@ public class IssuedPaycheckMapper implements BaseMapper<IssuedPaycheck, IssuedPa
         dto.setSuccessful(entity.getSuccessful());
         dto.setPaycheckId(entity.getPaycheckId());
         dto.setAccountId(entity.getAccountId());
+        dto.setSplitId(entity.getSplitId());
 
         // Auditing
         dto.setCreatedBy(entity.getCreatedBy());
@@ -72,6 +74,7 @@ public class IssuedPaycheckMapper implements BaseMapper<IssuedPaycheck, IssuedPa
 
         entity.setIssuedAmount(createDto.getIssuedAmount());
         entity.setAccountId(createDto.getAccountId());
+        entity.setSplitId(createDto.getSplitId());
 
         return entity;
     }

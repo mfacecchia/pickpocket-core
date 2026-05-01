@@ -96,7 +96,7 @@ public class GeneralExceptionHandler {
     }
 
     @ExceptionHandler({ Exception.class })
-    private ResponseEntity<ErrorResponse> generalExceptionHandler(Exception exception, WebRequest request) {
+    public ResponseEntity<ErrorResponse> generalExceptionHandler(Exception exception, WebRequest request) {
         BaseException baseException = new BaseException();
 
         if (exception instanceof BaseException) {

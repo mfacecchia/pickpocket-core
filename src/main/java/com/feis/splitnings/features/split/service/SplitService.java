@@ -106,6 +106,30 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     }
 
     /**
+     * Updates theoretical && available amounts for
+     * the specified split based on the provided `topUpAmount`
+     * considering defined percentage for such split.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void topUpByAmount(Integer splitId, Double topUpAmount) {
+        Split split = splitReadService.getById(splitId);
+
+        Double splitPreviousTheoreticalAmount = split.getTheoreticalAmount();
+        Double splitPreviousAvailableAmount = split.getAvailableAmount();
+        Short splitPercentage = split.getSplitPercentage();
+
+        Double splitTheoreticalAmount = SplitUtils.computeSplitAmount(topUpAmount, splitPercentage, splitPreviousTheoreticalAmount);
+        split.setTheoreticalAmount(splitTheoreticalAmount);
+
+        Double splitAvailableAmount = splitPreviousAvailableAmount + topUpAmount;
+        split.setAvailableAmount(splitAvailableAmount);
+
+        repository.save(split);
+
+        logger.info("TopUpByAmount ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
+    }
+
+    /**
      * Updates the specified split available amount
      * based on the provided `chargeAmount`.
      */

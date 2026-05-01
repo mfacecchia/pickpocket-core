@@ -99,8 +99,8 @@ public class GeneralExceptionHandler {
     public ResponseEntity<ErrorResponse> generalExceptionHandler(Exception exception, WebRequest request) {
         BaseException baseException = new BaseException();
 
-        if (exception instanceof BaseException) {
-            baseException = (BaseException) exception;
+        if (exception instanceof BaseException baseEx) {
+            baseException = baseEx;
         } else {
             Error error = new Error(InternalErrorCode.UNHANDLED_ERROR, "An unexpected error occurred while handling your request.");
             baseException.addError(error);

@@ -95,7 +95,7 @@ public class GeneralExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(errorResponse.getStatus()));
     }
 
-    @ExceptionHandler({Exception.class})
+    @ExceptionHandler({ Exception.class })
     private ResponseEntity<ErrorResponse> generalExceptionHandler(Exception exception, WebRequest request) {
         BaseException baseException = new BaseException();
 

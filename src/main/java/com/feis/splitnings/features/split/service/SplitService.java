@@ -86,7 +86,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         List<Split> accountSplits = splitReadService.getAllByAccountId(accountId);
 
-        logger.info("TopUpByAmountAndAccountId ::: Updating amounts for {} splits from account {}", accountSplits.size(), accountId);
+        logger.info("TopUpByAmountAndAccountId ::: Updating amounts for {} splits from account {} by {}", accountSplits.size(), accountId, topUpAmount);
 
         accountSplits.forEach((split) -> {
             Double splitPreviousTheoreticalAmount = split.getTheoreticalAmount();

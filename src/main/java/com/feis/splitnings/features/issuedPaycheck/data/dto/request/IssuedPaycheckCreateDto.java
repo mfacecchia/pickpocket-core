@@ -17,4 +17,6 @@ public class IssuedPaycheckCreateDto {
 
     @NotNull(message = "{field.required}")
     private Integer accountId;
+
+    private Integer splitId;
 }

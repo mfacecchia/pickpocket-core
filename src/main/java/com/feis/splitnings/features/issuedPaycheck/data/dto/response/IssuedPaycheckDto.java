@@ -1,14 +1,15 @@
 package com.feis.splitnings.features.issuedPaycheck.data.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.feis.splitnings.common.data.dto.response.BaseGetDto;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.time.Instant;
 
 import lombok.Getter;
 import lombok.Setter;
 
-@JsonPropertyOrder({"issuedAmount", "issuedAt", "successful", "paycheckId", "accountId"})
+@JsonPropertyOrder({"id", "issuedAmount", "issuedAt", "successful", "paycheckId", "accountId", "splitId"})
 @Getter
 @Setter
 public class IssuedPaycheckDto extends BaseGetDto {
@@ -17,4 +18,5 @@ public class IssuedPaycheckDto extends BaseGetDto {
     private Boolean successful;
     private Integer paycheckId;
     private Integer accountId;
+    private Integer splitId;
 }

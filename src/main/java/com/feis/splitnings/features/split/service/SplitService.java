@@ -172,28 +172,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         });
     }
 
-    // TODO: Remove this override as ordering changed on the AbstractService itself
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public SplitDto update(Integer id, SplitUpdateDto updateDto) {
-        Split existing = repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(resourceName, id.toString()));
-
-        doValidate(updateDto);
-        validateUpdateDto(updateDto, existing);
-
-        // Moved `doUpdate` before mapping because previous split
-        // information is required to correctly perform
-        // allocated percentages calculations
-        doUpdate(existing, updateDto);
-        convertUpdateDtoToEntity(updateDto, existing);
-        Split saved = save(existing);
-
-        logger.info("Update ::: Updated {} with id {}", resourceName, id);
-
-        return convertToDto(saved);
-    }
-
     @Override
     protected void validateCreateDto(SplitCreateDto createDto) {
         // This checks whether the account is owned by the current user.

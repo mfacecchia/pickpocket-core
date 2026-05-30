@@ -270,11 +270,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     }
 
     @Override
-    protected Integer getResourceId(Split entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected List<Split> doFilter(List<Split> entityPage) {
         if (entityPage == null) {
             return new ArrayList<>();

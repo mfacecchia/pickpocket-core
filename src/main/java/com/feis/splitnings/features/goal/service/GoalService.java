@@ -97,11 +97,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     @Override
-    protected Integer getResourceId(Goal entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected List<Goal> doFilter(List<Goal> entityPage) {
         if (entityPage == null) {
             return new ArrayList<>();

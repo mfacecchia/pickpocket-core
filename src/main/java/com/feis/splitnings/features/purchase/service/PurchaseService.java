@@ -54,11 +54,6 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
     }
 
     @Override
-    protected Integer getResourceId(Purchase entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected List<Purchase> doFilter(List<Purchase> entityPage) {
         if (entityPage == null) {
             return new ArrayList<>();

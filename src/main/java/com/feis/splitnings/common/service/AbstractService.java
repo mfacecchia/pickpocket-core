@@ -2,6 +2,7 @@ package com.feis.splitnings.common.service;
 
 import com.feis.splitnings.common.data.dto.response.BasePageDto;
 import com.feis.splitnings.common.data.entity.BaseAuditingEntity;
+import com.feis.splitnings.common.enums.Identifiable;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
@@ -30,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
-public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO extends BasePageDto<GET_DTO>, PK_TYPE> {
+public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identifiable<?>, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO extends BasePageDto<GET_DTO>, PK_TYPE> {
     @Autowired
     protected Validator validator;
 
@@ -45,8 +46,6 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
     protected abstract void validateUpdateDto(UPDATE_DTO updateDto, ENTITY existing);
 
     protected abstract void validateDelete(PK_TYPE id);
-
-    protected abstract PK_TYPE getResourceId(ENTITY entity);
 
     public GET_DTO get(PK_TYPE id) {
         ENTITY entity = repository.findByIdAndDeleted(id, false).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
@@ -107,7 +106,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         doCreate(entity);
         ENTITY saved = save(entity);
 
-        logger.info("Create ::: Created new {} with id {}", resourceName, getResourceId(saved));
+        logger.info("Create ::: Created new {} with id {}", resourceName, saved.getId());
 
         return convertToDto(saved);
     }

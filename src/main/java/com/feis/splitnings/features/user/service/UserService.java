@@ -69,11 +69,6 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
     }
 
     @Override
-    protected Integer getResourceId(User entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected void doCreate(User toCreate) {
         toCreate.setLastLogin(Instant.now());
     }

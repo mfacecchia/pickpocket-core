@@ -34,10 +34,10 @@ public class PageableUtil {
 
     private static void validatePageable(Integer page, Integer size) {
         List<Error> errors = new ArrayList<>();
+
         if (page < 0) {
             errors.add(new ValidationError("page", InternalErrorCode.PARAMETER_INVALID, "Page index must be higher or equal than 0"));
         }
-
         if (size <= 0) {
             errors.add(new ValidationError("size", InternalErrorCode.PARAMETER_INVALID, "Page size must be higher or equal than 1"));
         }

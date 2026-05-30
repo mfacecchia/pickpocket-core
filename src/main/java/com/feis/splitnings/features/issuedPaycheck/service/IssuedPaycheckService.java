@@ -43,11 +43,6 @@ public class IssuedPaycheckService extends AbstractService<IssuedPaycheck, Issue
     }
 
     @Override
-    protected Integer getResourceId(IssuedPaycheck entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected void doCreate(IssuedPaycheck toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 

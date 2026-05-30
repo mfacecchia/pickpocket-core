@@ -13,4 +13,6 @@ public interface AccountRepository extends BaseRepository<Account, Integer> {
     Optional<Account> findByIdAndUserId(Integer id, Integer userId);
 
     List<Account> findByUserId(Integer userId);
+
+    Boolean existsByIdAndUserId(Integer id, Integer userId);
 }

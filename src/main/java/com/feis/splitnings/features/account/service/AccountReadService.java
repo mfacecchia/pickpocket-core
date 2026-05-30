@@ -29,4 +29,8 @@ public class AccountReadService {
         return repository.findByIdAndUserId(accountId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(resourceName, accountId.toString()));
     }
+
+    public Boolean existsByIdAndUserId(Integer accountId, Integer userId) {
+        return repository.existsByIdAndUserId(accountId, userId);
+    }
 }

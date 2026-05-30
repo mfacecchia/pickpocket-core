@@ -2,6 +2,7 @@ package com.feis.splitnings.features.goal.service;
 
 import com.feis.splitnings.common.exception.errors.Error;
 import com.feis.splitnings.common.exception.ConflictException;
+import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.service.AbstractService;
@@ -228,6 +229,37 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         } else {
             goal.setCurrentAmount(splitAvailableAmount);
         }
+    }
+
+    @Override
+    protected void checkReadPermission(Goal entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isGoalOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    @Override
+    protected void checkUpdatePermission(Goal entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isGoalOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    @Override
+    protected void checkDeletePermission(Goal entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isGoalOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    private Boolean isGoalOwner(Integer userId, Goal entity) {
+        return goalReadService.existsByIdAndUserId(entity.getId(), userId);
     }
 }
 

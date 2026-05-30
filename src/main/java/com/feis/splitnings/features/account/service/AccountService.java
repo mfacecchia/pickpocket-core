@@ -1,6 +1,7 @@
 package com.feis.splitnings.features.account.service;
 
 import com.feis.splitnings.common.exception.ConflictException;
+import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.features.account.data.Account;
@@ -116,11 +117,6 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     }
 
     @Override
-    protected Integer getResourceId(Account entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected void doCreate(Account toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
@@ -138,4 +134,36 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     protected void doDelete(Account toDelete) {
         toDelete.setModifiedBy(SecurityUtils.getJwtUserId().toString());
     }
+
+    @Override
+    protected void checkReadPermission(Account entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isAccountOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    @Override
+    protected void checkUpdatePermission(Account entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isAccountOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    @Override
+    protected void checkDeletePermission(Account entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isAccountOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    private boolean isAccountOwner(Integer userId, Account entity) {
+        return userId.equals(entity.getUserId());
+    }
 }
+

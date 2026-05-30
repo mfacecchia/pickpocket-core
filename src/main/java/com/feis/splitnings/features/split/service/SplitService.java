@@ -371,5 +371,36 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
                 .orElseThrow(() -> new ResourceNotFoundException("Default split", "account", accountId.toString()));
 
     }
+
+    @Override
+    protected void checkReadPermission(Split entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isSplitOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    @Override
+    protected void checkUpdatePermission(Split entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isSplitOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    @Override
+    protected void checkDeletePermission(Split entity) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (!isSplitOwner(jwtUserId, entity)) {
+            throw new ForbiddenOperationException();
+        }
+    }
+
+    private Boolean isSplitOwner(Integer userId, Split entity) {
+        return accountReadService.existsByIdAndUserId(entity.getAccountId(), userId);
+    }
 }
 

@@ -44,7 +44,7 @@ public class Purchase extends BaseEntity {
     /* ---RELATIONSHIPS--- */
 
     @JoinColumn(name = "goal_id", nullable = true, insertable = false, updatable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Goal goal;
 
     @JoinColumn(name = "split_id", nullable = false, insertable = false, updatable = false)

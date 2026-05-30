@@ -2,6 +2,7 @@ package com.feis.splitnings.common.data.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,10 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BaseLookupTable extends BaseEntity {
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     // Human-readable description
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 }

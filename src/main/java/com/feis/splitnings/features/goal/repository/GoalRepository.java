@@ -24,5 +24,7 @@ public interface GoalRepository extends BaseRepository<Goal, Integer> {
 
     Optional<Goal> findByIdAndSplitAccountUserIdAndDeletedFalse(Integer id, Integer userId);
 
+    Boolean existsByIdAndSplitAccountUserIdAndDeletedFalse(Integer id, Integer userId);
+
     List<Goal> findBySplitIdAndDeletedFalse(Integer splitId);
 }

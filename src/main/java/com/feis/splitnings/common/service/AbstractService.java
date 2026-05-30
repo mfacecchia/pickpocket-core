@@ -47,8 +47,16 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     protected abstract void validateDelete(PK_TYPE id);
 
+    protected abstract void checkReadPermission(ENTITY entity);
+
+    protected abstract void checkUpdatePermission(ENTITY entity);
+
+    protected abstract void checkDeletePermission(ENTITY entity);
+
     public GET_DTO get(PK_TYPE id) {
         ENTITY entity = repository.findByIdAndDeleted(id, false).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
+
+        checkReadPermission(entity);
 
         logger.info("GetById ::: {} found with id {}", resourceName, id);
 
@@ -116,6 +124,8 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
         ENTITY existing = repository.findByIdAndDeleted(id, false).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
 
+        checkUpdatePermission(existing);
+
         doValidate(updateDto);
         validateUpdateDto(updateDto, existing);
 
@@ -131,29 +141,34 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     @Transactional(rollbackFor = Exception.class)
     public void delete(PK_TYPE id) {
-        validateDelete(id);
-        softDelete(id);
-    }
+        Optional<ENTITY> existing = repository.findByIdAndDeleted(id, false);
 
-    protected void softDelete(PK_TYPE id) {
-        Optional<ENTITY> existing = repository.findById(id);
         if (existing.isEmpty()) {
+            logger.info("Delete ::: {} with id {} does not exist or was already deleted. Early returning.", resourceName, id);
             return;
         }
 
         ENTITY toDelete = existing.get();
+
+        checkDeletePermission(toDelete);
+
+        validateDelete(id);
+        softDelete(toDelete);
+    }
+
+    protected void softDelete(ENTITY toDelete) {
         doDelete(toDelete);
 
         toDelete.setDeleted(true);
         save(toDelete);
 
-        logger.info("Delete ::: Execute soft delete on {} with id {}", resourceName, id);
+        logger.info("SoftDelete ::: Execute soft delete on {} with id {}", resourceName, toDelete.getId());
     }
 
-    protected void hardDelete(PK_TYPE id) {
-        repository.deleteById(id);
+    protected void hardDelete(ENTITY toDelete) {
+        repository.delete(toDelete);
 
-        logger.info("Delete ::: Execute hard delete on {} with id {}", resourceName, id);
+        logger.info("HardDelete ::: Execute hard delete on {} with id {}", resourceName, toDelete.getId());
     }
 
     protected ENTITY save(ENTITY entity) {
@@ -239,3 +254,4 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
         return entities.subList(start, end);
     }
 }
+

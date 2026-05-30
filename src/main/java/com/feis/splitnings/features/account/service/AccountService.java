@@ -35,25 +35,6 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
         this.accountReadService = accountReadService;
     }
 
-    public AccountDto getByIdAndUserId(Integer id, Integer userId) {
-        Account entity = ((AccountRepository) repository).findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
-
-        logger.info("GetById ::: {} found with id {}", resourceName, id);
-
-        return convertToDto(entity);
-    }
-
-    public List<AccountDto> getAllByUserId(Integer userId) {
-        List<Account> userAccounts = ((AccountRepository) repository).findByUserId(userId);
-
-        logger.info("GetById ::: {} found {} results with userId {}", resourceName, userAccounts.size(), userId);
-
-        return userAccounts.stream()
-                .map(mapper::mapToDto)
-                .collect(Collectors.toList());
-    }
-
     @Transactional(rollbackOn = Exception.class)
     public AccountDto topUpAccount(Integer accountId, Double topUpAmount) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();

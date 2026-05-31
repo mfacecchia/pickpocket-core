@@ -4,6 +4,8 @@ import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.exception.errors.Error;
 import com.feis.splitnings.common.service.AbstractService;
+import com.feis.splitnings.features.goal.data.Goal;
+import com.feis.splitnings.features.goal.service.GoalReadService;
 import com.feis.splitnings.features.purchase.data.Purchase;
 import com.feis.splitnings.features.purchase.data.dto.request.PurchaseCreateDto;
 import com.feis.splitnings.features.purchase.data.dto.request.PurchaseUpdateDto;
@@ -27,20 +29,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PurchaseService extends AbstractService<Purchase, PurchaseDto, PurchaseCreateDto, PurchaseUpdateDto, PurchasePageDto, Integer> {
     private final SplitReadService splitReadService;
+    private final GoalReadService goalReadService;
 
     public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService,
-            PurchaseReadService purchaseReadService, PurchasePermissionChecker purchasePermissionChecker) {
+            PurchaseReadService purchaseReadService, PurchasePermissionChecker purchasePermissionChecker, GoalReadService goalReadService) {
 
         this.mapper = purchaseMapper;
         this.repository = purchaseRepository;
         this.splitReadService = splitReadService;
         this.permissionChecker = purchasePermissionChecker;
+        this.goalReadService = goalReadService;
         this.resourceName = "Purchase";
+    }
+
+    public PurchaseDto createCompletedGoalPurchase(PurchaseCreateDto createDto, Integer goalId) {
+        doValidate(createDto);
+        validateCompletedGoalPurchaseCreateDto(createDto, goalId);
+
+        Purchase entity = convertToEntity(createDto, goalId);
+
+        doCreate(entity);
+
+        Purchase saved = save(entity);
+
+        logger.info("CreateCompletedGoalPurchase ::: Created new {} with id {}", resourceName, saved.getId());
+
+        return convertToDto(saved);
     }
 
     @Override
     protected void validateCreateDto(PurchaseCreateDto createDto) {
-        Split split = splitReadService.getById(createDto.getSplitId());
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Split split = splitReadService.getByIdAndUserId(createDto.getSplitId(), jwtUserId, false);
 
         if (!split.getActive()) {
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "The linked split is inactive. Reactivate it before proceeding.");
@@ -108,6 +129,31 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         entity.setModifiedBy(jwtUserId.toString());
+    }
+
+    private void validateCompletedGoalPurchaseCreateDto(PurchaseCreateDto createDto, Integer goalId) {
+        List<Error> validationErrors = new ArrayList<>();
+
+        Goal goal = goalReadService.getById(goalId);
+        if (!goal.getSplitId().equals(createDto.getSplitId())) {
+            Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "The provided goal is not linked to the specified split");
+            validationErrors.add(error);
+
+            logger.info("ValidateCompletedGoalPurchaseCreateDto ::: The provided goal (id {}) is linked to the split with id {}, while the purchase specified split with id {}.", goal.getId(), goal.getSplitId(), createDto.getSplitId());
+        }
+
+        try {
+            validateCreateDto(createDto);
+        } catch (ValidationException e) {
+            validationErrors.addAll(e.getErrors());
+        }
+    }
+
+    private Purchase convertToEntity(PurchaseCreateDto createDto, Integer goalId) {
+        Purchase entity = mapper.mapCreateDtoToEntity(createDto);
+        entity.setGoalId(goalId);
+
+        return entity;
     }
 }
 

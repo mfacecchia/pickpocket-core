@@ -2,6 +2,7 @@ package com.feis.splitnings.features.purchase.data;
 
 import com.feis.splitnings.common.data.entity.BaseEntity;
 import com.feis.splitnings.features.goal.data.Goal;
+import com.feis.splitnings.features.purchase.data.enums.PurchaseCategory;
 import com.feis.splitnings.features.split.data.Split;
 
 import org.hibernate.envers.Audited;
@@ -39,7 +40,8 @@ public class Purchase extends BaseEntity {
     @Column(name = "split_id", nullable = false)
     private Integer splitId;
 
-    // TODO: Purchase category
+    @Column(name = "category", nullable = false)
+    private PurchaseCategory category;
 
     /* ---RELATIONSHIPS--- */
 

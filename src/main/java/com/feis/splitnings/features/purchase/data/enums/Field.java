@@ -7,6 +7,7 @@ public enum Field {
     id("id"),
     name("name"),
     description("description"),
+    category("category"),
     splitId("splitId"),
     deleted("deleted");
 

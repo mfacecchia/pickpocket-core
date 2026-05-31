@@ -9,6 +9,7 @@ import com.feis.splitnings.features.purchase.data.dto.request.PurchaseCreateDto;
 import com.feis.splitnings.features.purchase.data.dto.request.PurchaseUpdateDto;
 import com.feis.splitnings.features.purchase.data.dto.response.PurchaseDto;
 import com.feis.splitnings.features.purchase.data.dto.response.PurchasePageDto;
+import com.feis.splitnings.features.purchase.data.enums.PurchaseCategory;
 import com.feis.splitnings.features.purchase.mapper.PurchaseMapper;
 import com.feis.splitnings.features.purchase.repository.PurchaseRepository;
 import com.feis.splitnings.features.split.data.Split;
@@ -82,6 +83,12 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
     @Override
     protected void doCreate(Purchase toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        if (toCreate.getGoalId() != null) {
+            toCreate.setCategory(PurchaseCategory.COMPLETED_GOAL);
+        } else {
+            toCreate.setCategory(PurchaseCategory.PURCHASE);
+        }
 
         toCreate.setCreatedBy(jwtUserId.toString());
         toCreate.setModifiedBy(jwtUserId.toString());

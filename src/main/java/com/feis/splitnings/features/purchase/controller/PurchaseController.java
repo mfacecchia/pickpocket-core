@@ -10,6 +10,7 @@ import com.feis.splitnings.features.purchase.data.dto.request.PurchaseUpdateDto;
 import com.feis.splitnings.features.purchase.data.dto.response.PurchaseDto;
 import com.feis.splitnings.features.purchase.data.dto.response.PurchasePageDto;
 import com.feis.splitnings.features.purchase.data.enums.Field;
+import com.feis.splitnings.features.purchase.data.enums.PurchaseCategory;
 import com.feis.splitnings.features.purchase.orchestrator.PurchaseOrchestrator;
 import com.feis.splitnings.features.purchase.service.PurchaseService;
 
@@ -81,6 +82,7 @@ public class PurchaseController {
             @RequestParam(name = "ids", required = false) List<Integer> ids,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "description", required = false) String description,
+            @RequestParam(name = "category", required = false) PurchaseCategory category,
             @RequestParam(name = "splitId", required = false) Integer splitId,
             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
             @RequestParam(name = "size", required = false) Integer size,
@@ -93,6 +95,7 @@ public class PurchaseController {
                 .in(Field.id.getPath(), ids, false)
                 .like(Field.name.getPath(), name, false)
                 .like(Field.description.getPath(), description, false)
+                .whereEqualTo(Field.category.getPath(), category, false)
                 .whereEqualTo(Field.splitId.getPath(), splitId, false)
                 .whereEqualTo(Field.deleted.getPath(), false, false);
 

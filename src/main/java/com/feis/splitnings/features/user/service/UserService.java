@@ -2,7 +2,6 @@ package com.feis.splitnings.features.user.service;
 
 import com.feis.splitnings.common.enums.KeycloakUserAttribute;
 import com.feis.splitnings.common.exception.AlreadyRegisteredException;
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.common.service.KeycloakService;
 import com.feis.splitnings.features.user.data.User;
@@ -27,9 +26,10 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
     @Autowired
     private KeycloakService keycloakService;
 
-    public UserService(UserMapper userMapper, UserRepository userRepository) {
+    public UserService(UserMapper userMapper, UserRepository userRepository, UserPermissionChecker userPermissionChecker) {
         this.mapper = userMapper;
         this.repository = userRepository;
+        this.permissionChecker = userPermissionChecker;
         this.resourceName = "User";
     }
 
@@ -72,37 +72,6 @@ public class UserService extends AbstractService<User, UserDto, UserCreateDto, U
     @Override
     protected void doCreate(User toCreate) {
         toCreate.setLastLogin(Instant.now());
-    }
-
-    @Override
-    protected void checkReadPermission(User entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isUserOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkUpdatePermission(User entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isUserOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkDeletePermission(User entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isUserOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    private Boolean isUserOwner(Integer userId, User entity) {
-        return userId.equals(entity.getId());
     }
 }
 

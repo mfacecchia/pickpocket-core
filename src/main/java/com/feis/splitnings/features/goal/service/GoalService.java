@@ -2,7 +2,6 @@ package com.feis.splitnings.features.goal.service;
 
 import com.feis.splitnings.common.exception.errors.Error;
 import com.feis.splitnings.common.exception.ConflictException;
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.service.AbstractService;
@@ -34,12 +33,13 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     private final GoalReadService goalReadService;
 
     public GoalService(GoalMapper goalMapper, GoalRepository goalRepository, SplitReadService splitReadService,
-            GoalReadService goalReadService) {
+            GoalReadService goalReadService, GoalPermissionChecker goalPermissionChecker) {
 
         this.mapper = goalMapper;
         this.repository = goalRepository;
         this.splitReadService = splitReadService;
         this.goalReadService = goalReadService;
+        this.permissionChecker = goalPermissionChecker;
         this.resourceName = "Goal";
     }
 
@@ -153,6 +153,10 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
     @Transactional(rollbackFor = Exception.class)
     public void updateGoalsAmountByAccountId(Integer accountId) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        ((GoalPermissionChecker) permissionChecker).checkUpdatePermissionByAccountId(jwtUserId, accountId);
+
         List<Goal> accountGoals = goalReadService.getAllNotCompletedByAccountIdFetchSplit(accountId);
 
         logger.info("UpdateGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
@@ -169,10 +173,12 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     public GoalDto complete(Integer goalId) {
-        // TODO: Create purchase on goal completion
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
+        // TODO: Create purchase on goal completion
+        Goal goal = goalReadService.getById(goalId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, goal);
 
         if (goal.getCurrentAmount() < goal.getTargetAmount()) {
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "Cannot complete this goal. The target has not yet been reached.");
@@ -193,10 +199,12 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     public GoalDto uncomplete(Integer goalId) {
-        // TODO: Delete linked purchase on goal uncomplete
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
+        // TODO: Delete linked purchase on goal uncomplete
+        Goal goal = goalReadService.getById(goalId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, goal);
 
         if (!goal.getCompleted()) {
             Error error = new Error(InternalErrorCode.CONFLICT, "Cannot uncomplete this goal. It's already active.");
@@ -229,37 +237,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         } else {
             goal.setCurrentAmount(splitAvailableAmount);
         }
-    }
-
-    @Override
-    protected void checkReadPermission(Goal entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isGoalOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkUpdatePermission(Goal entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isGoalOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkDeletePermission(Goal entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isGoalOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    private Boolean isGoalOwner(Integer userId, Goal entity) {
-        return goalReadService.existsByIdAndUserId(entity.getId(), userId);
     }
 }
 

@@ -11,6 +11,7 @@ import com.feis.splitnings.common.exception.errors.ValidationError;
 import com.feis.splitnings.common.mapper.BaseMapper;
 import com.feis.splitnings.common.repository.BaseRepository;
 import com.feis.splitnings.common.specification.CommonSpecificationBuilder;
+import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     protected BaseMapper<ENTITY, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO> mapper;
     protected BaseRepository<ENTITY, PK_TYPE> repository;
+    protected AbstractPermissionChecker<ENTITY> permissionChecker;
     protected String resourceName = "Resource";
 
     protected abstract void validateCreateDto(CREATE_DTO createDto);
@@ -47,16 +49,12 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     protected abstract void validateDelete(PK_TYPE id);
 
-    protected abstract void checkReadPermission(ENTITY entity);
-
-    protected abstract void checkUpdatePermission(ENTITY entity);
-
-    protected abstract void checkDeletePermission(ENTITY entity);
-
     public GET_DTO get(PK_TYPE id) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         ENTITY entity = repository.findByIdAndDeleted(id, false).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
 
-        checkReadPermission(entity);
+        permissionChecker.checkReadPermission(jwtUserId, entity);
 
         logger.info("GetById ::: {} found with id {}", resourceName, id);
 
@@ -121,10 +119,12 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     @Transactional(rollbackFor = Exception.class)
     public GET_DTO update(PK_TYPE id, UPDATE_DTO updateDto) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         ENTITY existing = repository.findByIdAndDeleted(id, false).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
 
-        checkUpdatePermission(existing);
+        permissionChecker.checkUpdatePermission(jwtUserId, existing);
 
         doValidate(updateDto);
         validateUpdateDto(updateDto, existing);
@@ -141,6 +141,8 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     @Transactional(rollbackFor = Exception.class)
     public void delete(PK_TYPE id) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         Optional<ENTITY> existing = repository.findByIdAndDeleted(id, false);
 
         if (existing.isEmpty()) {
@@ -150,7 +152,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
         ENTITY toDelete = existing.get();
 
-        checkDeletePermission(toDelete);
+        permissionChecker.checkDeletePermission(jwtUserId, toDelete);
 
         validateDelete(id);
         softDelete(toDelete);

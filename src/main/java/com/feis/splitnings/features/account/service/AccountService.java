@@ -1,7 +1,6 @@
 package com.feis.splitnings.features.account.service;
 
 import com.feis.splitnings.common.exception.ConflictException;
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.features.account.data.Account;
@@ -15,9 +14,7 @@ import com.feis.splitnings.security.utils.SecurityUtils;
 
 import jakarta.transaction.Transactional;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,18 +25,23 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     private final AccountReadService accountReadService;
     private static final Logger logger = LogManager.getLogger(AccountService.class);
 
-    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository, AccountReadService accountReadService) {
+    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository, AccountReadService accountReadService,
+            AccountPermissionChecker accountPermissionChecker) {
+
         this.mapper = accountMapper;
         this.repository = accountRepository;
         this.resourceName = "Account";
         this.accountReadService = accountReadService;
+        this.permissionChecker = accountPermissionChecker;
     }
 
     @Transactional(rollbackOn = Exception.class)
     public AccountDto topUpAccount(Integer accountId, Double topUpAmount) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
+        Account account = accountReadService.getById(accountId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, account);
 
         Double previousWealth = account.getWealth();
 
@@ -59,7 +61,9 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     public AccountDto chargeAccount(Integer accountId, Double chargeAmount) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
+        Account account = accountReadService.getById(accountId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, account);
 
         Double previousWealth = account.getWealth();
 
@@ -114,37 +118,6 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     @Override
     protected void doDelete(Account toDelete) {
         toDelete.setModifiedBy(SecurityUtils.getJwtUserId().toString());
-    }
-
-    @Override
-    protected void checkReadPermission(Account entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isAccountOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkUpdatePermission(Account entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isAccountOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkDeletePermission(Account entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isAccountOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    private boolean isAccountOwner(Integer userId, Account entity) {
-        return userId.equals(entity.getUserId());
     }
 }
 

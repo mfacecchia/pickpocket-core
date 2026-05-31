@@ -1,6 +1,5 @@
 package com.feis.splitnings.features.issuedPaycheck.service;
 
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.service.AbstractService;
 import com.feis.splitnings.features.account.service.AccountReadService;
 import com.feis.splitnings.features.issuedPaycheck.data.IssuedPaycheck;
@@ -21,11 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class IssuedPaycheckService extends AbstractService<IssuedPaycheck, IssuedPaycheckDto, IssuedPaycheckCreateDto, IssuedPaycheckUpdateDto, IssuedPaycheckPageDto, Integer> {
     private final AccountReadService accountReadService;
 
-    public IssuedPaycheckService(IssuedPaycheckMapper issuedPaycheckMapper, IssuedPaycheckRepository issuedPaycheckRepository, AccountReadService accountReadService) {
+    public IssuedPaycheckService(IssuedPaycheckMapper issuedPaycheckMapper, IssuedPaycheckRepository issuedPaycheckRepository,
+            AccountReadService accountReadService, IssuedPaycheckPermissionChecker issuedPaycheckPermissionChecker) {
+
         this.mapper = issuedPaycheckMapper;
         this.repository = issuedPaycheckRepository;
-        this.resourceName = "Issued Paycheck";
         this.accountReadService = accountReadService;
+        this.permissionChecker = issuedPaycheckPermissionChecker;
+        this.resourceName = "Issued Paycheck";
     }
 
     @Override
@@ -76,37 +78,6 @@ public class IssuedPaycheckService extends AbstractService<IssuedPaycheck, Issue
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         entity.setModifiedBy(jwtUserId.toString());
-    }
-
-    @Override
-    protected void checkReadPermission(IssuedPaycheck entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isIssuedPaycheckOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkUpdatePermission(IssuedPaycheck entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isIssuedPaycheckOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkDeletePermission(IssuedPaycheck entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isIssuedPaycheckOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    private Boolean isIssuedPaycheckOwner(Integer userId, IssuedPaycheck entity) {
-        return accountReadService.existsByIdAndUserId(entity.getAccountId(), userId);
     }
 }
 

@@ -1,6 +1,5 @@
 package com.feis.splitnings.features.purchase.service;
 
-import com.feis.splitnings.common.exception.ForbiddenOperationException;
 import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
 import com.feis.splitnings.common.exception.errors.Error;
@@ -27,14 +26,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PurchaseService extends AbstractService<Purchase, PurchaseDto, PurchaseCreateDto, PurchaseUpdateDto, PurchasePageDto, Integer> {
     private final SplitReadService splitReadService;
-    private final PurchaseReadService purchaseReadService;
 
-    public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService, PurchaseReadService purchaseReadService) {
+    public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService,
+            PurchaseReadService purchaseReadService, PurchasePermissionChecker purchasePermissionChecker) {
 
         this.mapper = purchaseMapper;
         this.repository = purchaseRepository;
         this.splitReadService = splitReadService;
-        this.purchaseReadService = purchaseReadService;
+        this.permissionChecker = purchasePermissionChecker;
         this.resourceName = "Purchase";
     }
 
@@ -102,37 +101,6 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         entity.setModifiedBy(jwtUserId.toString());
-    }
-
-    @Override
-    protected void checkReadPermission(Purchase entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isPurchaseOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkUpdatePermission(Purchase entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isPurchaseOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    @Override
-    protected void checkDeletePermission(Purchase entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        if (!isPurchaseOwner(jwtUserId, entity)) {
-            throw new ForbiddenOperationException();
-        }
-    }
-
-    private Boolean isPurchaseOwner(Integer userId, Purchase entity) {
-        return purchaseReadService.existsByIdAndUserId(entity.getId(), userId);
     }
 }
 

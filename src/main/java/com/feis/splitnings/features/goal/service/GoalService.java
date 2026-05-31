@@ -172,10 +172,10 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         repository.saveAll(accountGoals);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public GoalDto complete(Integer goalId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        // TODO: Create purchase on goal completion
         Goal goal = goalReadService.getById(goalId);
 
         permissionChecker.checkUpdatePermission(jwtUserId, goal);
@@ -198,6 +198,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         return mapper.mapToDto(goal);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public GoalDto uncomplete(Integer goalId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 

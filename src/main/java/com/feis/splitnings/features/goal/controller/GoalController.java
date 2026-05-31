@@ -10,6 +10,7 @@ import com.feis.splitnings.features.goal.data.dto.request.GoalUpdateDto;
 import com.feis.splitnings.features.goal.data.dto.response.GoalDto;
 import com.feis.splitnings.features.goal.data.dto.response.GoalPageDto;
 import com.feis.splitnings.features.goal.data.enums.Field;
+import com.feis.splitnings.features.goal.orchestrator.GoalOrchestrator;
 import com.feis.splitnings.features.goal.service.GoalService;
 
 import java.util.List;
@@ -46,6 +47,9 @@ public class GoalController {
 
     @Autowired
     private GoalService goalService;
+
+    @Autowired
+    private GoalOrchestrator goalOrchestrator;
 
     @Operation(summary = "Get a " + ITEM_NAME + " by its " + ID_NAME)
     @ApiResponses(value = {
@@ -161,7 +165,7 @@ public class GoalController {
     @PatchMapping("/{" + ID_NAME + "}/complete")
     public ResponseEntity<SuccessResponse<GoalDto>> completeGoal(
             @PathVariable(name = ID_NAME) Integer id) {
-        GoalDto dto = goalService.complete(id);
+        GoalDto dto = goalOrchestrator.completeGoal(id);
 
         HttpStatus responseStatus = HttpStatus.OK;
         SuccessResponse<GoalDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " was completed", dto);
@@ -183,6 +187,7 @@ public class GoalController {
     @PatchMapping("/{" + ID_NAME + "}/uncomplete")
     public ResponseEntity<SuccessResponse<GoalDto>> uncompleteGoal(
             @PathVariable(name = ID_NAME) Integer id) {
+        // TODO: goalOrchestrator.uncompleteGoal(id);
         GoalDto dto = goalService.uncomplete(id);
 
         HttpStatus responseStatus = HttpStatus.OK;

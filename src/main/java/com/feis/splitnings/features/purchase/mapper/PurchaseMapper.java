@@ -21,6 +21,7 @@ public class PurchaseMapper implements BaseMapper<Purchase, PurchaseDto, Purchas
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setAmount(dto.getAmount());
+        entity.setCategory(dto.getCategory());
         entity.setGoalId(dto.getGoalId());
         entity.setSplitId(dto.getSplitId());
 
@@ -42,6 +43,7 @@ public class PurchaseMapper implements BaseMapper<Purchase, PurchaseDto, Purchas
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
         dto.setAmount(entity.getAmount());
+        dto.setCategory(entity.getCategory());
         dto.setGoalId(entity.getGoalId());
         dto.setSplitId(entity.getSplitId());
 

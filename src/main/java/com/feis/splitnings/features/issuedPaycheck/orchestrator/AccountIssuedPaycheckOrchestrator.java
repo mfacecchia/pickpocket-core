@@ -27,6 +27,13 @@ public class AccountIssuedPaycheckOrchestrator {
     private final GoalService goalService;
     private final SplitReadService splitReadService;
 
+    /**
+     * Top-ups the specified account by the specified amount, based on the
+     * provided {@code IssuedPaycheckCreateDto} parameter.
+     * It's possible to top-up either the whole account
+     * (if the {@code splitId} attribute is {@code null}), or the single split
+     * if the same attribute is set with a valid id.
+     */
     @Transactional(rollbackFor = Exception.class)
     public IssuedPaycheckDto issueManualPaycheck(IssuedPaycheckCreateDto issuedPaycheckCreateDto) {
         Integer accountId = issuedPaycheckCreateDto.getAccountId();

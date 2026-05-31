@@ -2,6 +2,7 @@ package com.feis.splitnings.common.service;
 
 import com.feis.splitnings.common.data.dto.response.BasePageDto;
 import com.feis.splitnings.common.data.entity.BaseAuditingEntity;
+import com.feis.splitnings.common.enums.Identifiable;
 import com.feis.splitnings.common.exception.ResourceNotFoundException;
 import com.feis.splitnings.common.exception.ValidationException;
 import com.feis.splitnings.common.exception.enums.InternalErrorCode;
@@ -10,6 +11,7 @@ import com.feis.splitnings.common.exception.errors.ValidationError;
 import com.feis.splitnings.common.mapper.BaseMapper;
 import com.feis.splitnings.common.repository.BaseRepository;
 import com.feis.splitnings.common.specification.CommonSpecificationBuilder;
+import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
-public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO extends BasePageDto<GET_DTO>, PK_TYPE> {
+public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identifiable<?>, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO extends BasePageDto<GET_DTO>, PK_TYPE> {
     @Autowired
     protected Validator validator;
 
@@ -38,6 +40,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
 
     protected BaseMapper<ENTITY, GET_DTO, CREATE_DTO, UPDATE_DTO, PAGEABLE_DTO> mapper;
     protected BaseRepository<ENTITY, PK_TYPE> repository;
+    protected AbstractPermissionChecker<ENTITY> permissionChecker;
     protected String resourceName = "Resource";
 
     protected abstract void validateCreateDto(CREATE_DTO createDto);
@@ -46,10 +49,12 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
 
     protected abstract void validateDelete(PK_TYPE id);
 
-    protected abstract PK_TYPE getResourceId(ENTITY entity);
-
     public GET_DTO get(PK_TYPE id) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         ENTITY entity = repository.findByIdAndDeleted(id, false).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
+
+        permissionChecker.checkReadPermission(jwtUserId, entity);
 
         logger.info("GetById ::: {} found with id {}", resourceName, id);
 
@@ -107,15 +112,19 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         doCreate(entity);
         ENTITY saved = save(entity);
 
-        logger.info("Create ::: Created new {} with id {}", resourceName, getResourceId(saved));
+        logger.info("Create ::: Created new {} with id {}", resourceName, saved.getId());
 
         return convertToDto(saved);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public GET_DTO update(PK_TYPE id, UPDATE_DTO updateDto) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         ENTITY existing = repository.findByIdAndDeleted(id, false).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
+
+        permissionChecker.checkUpdatePermission(jwtUserId, existing);
 
         doValidate(updateDto);
         validateUpdateDto(updateDto, existing);
@@ -132,29 +141,36 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
 
     @Transactional(rollbackFor = Exception.class)
     public void delete(PK_TYPE id) {
-        validateDelete(id);
-        softDelete(id);
-    }
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-    protected void softDelete(PK_TYPE id) {
-        Optional<ENTITY> existing = repository.findById(id);
+        Optional<ENTITY> existing = repository.findByIdAndDeleted(id, false);
+
         if (existing.isEmpty()) {
+            logger.info("Delete ::: {} with id {} does not exist or was already deleted. Early returning.", resourceName, id);
             return;
         }
 
         ENTITY toDelete = existing.get();
+
+        permissionChecker.checkDeletePermission(jwtUserId, toDelete);
+
+        validateDelete(id);
+        softDelete(toDelete);
+    }
+
+    protected void softDelete(ENTITY toDelete) {
         doDelete(toDelete);
 
         toDelete.setDeleted(true);
         save(toDelete);
 
-        logger.info("Delete ::: Execute soft delete on {} with id {}", resourceName, id);
+        logger.info("SoftDelete ::: Execute soft delete on {} with id {}", resourceName, toDelete.getId());
     }
 
-    protected void hardDelete(PK_TYPE id) {
-        repository.deleteById(id);
+    protected void hardDelete(ENTITY toDelete) {
+        repository.delete(toDelete);
 
-        logger.info("Delete ::: Execute hard delete on {} with id {}", resourceName, id);
+        logger.info("HardDelete ::: Execute hard delete on {} with id {}", resourceName, toDelete.getId());
     }
 
     protected ENTITY save(ENTITY entity) {
@@ -240,3 +256,4 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity, GET_DTO
         return entities.subList(start, end);
     }
 }
+

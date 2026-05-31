@@ -14,9 +14,7 @@ import com.feis.splitnings.security.utils.SecurityUtils;
 
 import jakarta.transaction.Transactional;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,37 +25,23 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     private final AccountReadService accountReadService;
     private static final Logger logger = LogManager.getLogger(AccountService.class);
 
-    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository, AccountReadService accountReadService) {
+    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository, AccountReadService accountReadService,
+            AccountPermissionChecker accountPermissionChecker) {
+
         this.mapper = accountMapper;
         this.repository = accountRepository;
         this.resourceName = "Account";
         this.accountReadService = accountReadService;
-    }
-
-    public AccountDto getByIdAndUserId(Integer id, Integer userId) {
-        Account entity = ((AccountRepository) repository).findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
-
-        logger.info("GetById ::: {} found with id {}", resourceName, id);
-
-        return convertToDto(entity);
-    }
-
-    public List<AccountDto> getAllByUserId(Integer userId) {
-        List<Account> userAccounts = ((AccountRepository) repository).findByUserId(userId);
-
-        logger.info("GetById ::: {} found {} results with userId {}", resourceName, userAccounts.size(), userId);
-
-        return userAccounts.stream()
-                .map(mapper::mapToDto)
-                .collect(Collectors.toList());
+        this.permissionChecker = accountPermissionChecker;
     }
 
     @Transactional(rollbackOn = Exception.class)
     public AccountDto topUpAccount(Integer accountId, Double topUpAmount) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
+        Account account = accountReadService.getById(accountId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, account);
 
         Double previousWealth = account.getWealth();
 
@@ -77,7 +61,9 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     public AccountDto chargeAccount(Integer accountId, Double chargeAmount) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Account account = accountReadService.getByIdAndUserId(accountId, jwtUserId);
+        Account account = accountReadService.getById(accountId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, account);
 
         Double previousWealth = account.getWealth();
 
@@ -116,11 +102,6 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     }
 
     @Override
-    protected Integer getResourceId(Account entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected void doCreate(Account toCreate) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
@@ -139,3 +120,4 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
         toDelete.setModifiedBy(SecurityUtils.getJwtUserId().toString());
     }
 }
+

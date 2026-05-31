@@ -33,12 +33,13 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     private final GoalReadService goalReadService;
 
     public GoalService(GoalMapper goalMapper, GoalRepository goalRepository, SplitReadService splitReadService,
-            GoalReadService goalReadService) {
+            GoalReadService goalReadService, GoalPermissionChecker goalPermissionChecker) {
 
         this.mapper = goalMapper;
         this.repository = goalRepository;
         this.splitReadService = splitReadService;
         this.goalReadService = goalReadService;
+        this.permissionChecker = goalPermissionChecker;
         this.resourceName = "Goal";
     }
 
@@ -97,11 +98,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     @Override
-    protected Integer getResourceId(Goal entity) {
-        return entity.getId();
-    }
-
-    @Override
     protected List<Goal> doFilter(List<Goal> entityPage) {
         if (entityPage == null) {
             return new ArrayList<>();
@@ -157,6 +153,10 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
     @Transactional(rollbackFor = Exception.class)
     public void updateGoalsAmountByAccountId(Integer accountId) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        ((GoalPermissionChecker) permissionChecker).checkUpdatePermissionByAccountId(jwtUserId, accountId);
+
         List<Goal> accountGoals = goalReadService.getAllNotCompletedByAccountIdFetchSplit(accountId);
 
         logger.info("UpdateGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
@@ -173,10 +173,12 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     public GoalDto complete(Integer goalId) {
-        // TODO: Create purchase on goal completion
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
+        // TODO: Create purchase on goal completion
+        Goal goal = goalReadService.getById(goalId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, goal);
 
         if (goal.getCurrentAmount() < goal.getTargetAmount()) {
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "Cannot complete this goal. The target has not yet been reached.");
@@ -197,10 +199,12 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     public GoalDto uncomplete(Integer goalId) {
-        // TODO: Delete linked purchase on goal uncomplete
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Goal goal = goalReadService.getByIdAndUserId(goalId, jwtUserId);
+        // TODO: Delete linked purchase on goal uncomplete
+        Goal goal = goalReadService.getById(goalId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, goal);
 
         if (!goal.getCompleted()) {
             Error error = new Error(InternalErrorCode.CONFLICT, "Cannot uncomplete this goal. It's already active.");

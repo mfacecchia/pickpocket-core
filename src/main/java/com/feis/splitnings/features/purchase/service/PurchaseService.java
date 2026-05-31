@@ -27,11 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class PurchaseService extends AbstractService<Purchase, PurchaseDto, PurchaseCreateDto, PurchaseUpdateDto, PurchasePageDto, Integer> {
     private final SplitReadService splitReadService;
 
-    public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService) {
+    public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService,
+            PurchaseReadService purchaseReadService, PurchasePermissionChecker purchasePermissionChecker) {
 
         this.mapper = purchaseMapper;
         this.repository = purchaseRepository;
         this.splitReadService = splitReadService;
+        this.permissionChecker = purchasePermissionChecker;
         this.resourceName = "Purchase";
     }
 
@@ -51,11 +53,6 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
 
     @Override
     protected void validateDelete(Integer id) {
-    }
-
-    @Override
-    protected Integer getResourceId(Purchase entity) {
-        return entity.getId();
     }
 
     @Override

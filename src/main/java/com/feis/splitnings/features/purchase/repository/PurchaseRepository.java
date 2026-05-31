@@ -7,5 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PurchaseRepository extends BaseRepository<Purchase, Integer> {
+
+    Boolean existsByIdAndSplitAccountUserId(Integer id, Integer userId);
 }
 

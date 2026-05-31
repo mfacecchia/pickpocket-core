@@ -2,6 +2,8 @@ package com.feis.splitnings.common.data.entity;
 
 import org.hibernate.envers.Audited;
 
+import com.feis.splitnings.common.enums.Identifiable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,7 +16,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Audited
-public class BaseEntity extends BaseAuditingEntity {
+public class BaseEntity extends BaseAuditingEntity implements Identifiable<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

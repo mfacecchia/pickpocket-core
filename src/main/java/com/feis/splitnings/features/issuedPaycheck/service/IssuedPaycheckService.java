@@ -20,11 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class IssuedPaycheckService extends AbstractService<IssuedPaycheck, IssuedPaycheckDto, IssuedPaycheckCreateDto, IssuedPaycheckUpdateDto, IssuedPaycheckPageDto, Integer> {
     private final AccountReadService accountReadService;
 
-    public IssuedPaycheckService(IssuedPaycheckMapper issuedPaycheckMapper, IssuedPaycheckRepository issuedPaycheckRepository, AccountReadService accountReadService) {
+    public IssuedPaycheckService(IssuedPaycheckMapper issuedPaycheckMapper, IssuedPaycheckRepository issuedPaycheckRepository,
+            AccountReadService accountReadService, IssuedPaycheckPermissionChecker issuedPaycheckPermissionChecker) {
+
         this.mapper = issuedPaycheckMapper;
         this.repository = issuedPaycheckRepository;
-        this.resourceName = "Issued Paycheck";
         this.accountReadService = accountReadService;
+        this.permissionChecker = issuedPaycheckPermissionChecker;
+        this.resourceName = "Issued Paycheck";
     }
 
     @Override
@@ -40,11 +43,6 @@ public class IssuedPaycheckService extends AbstractService<IssuedPaycheck, Issue
 
     @Override
     protected void validateUpdateDto(IssuedPaycheckUpdateDto updateDto, IssuedPaycheck existing) {
-    }
-
-    @Override
-    protected Integer getResourceId(IssuedPaycheck entity) {
-        return entity.getId();
     }
 
     @Override

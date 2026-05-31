@@ -15,7 +15,6 @@ import com.feis.splitnings.features.account.orchestrator.AccountSplitOrchestrato
 import com.feis.splitnings.features.account.service.AccountService;
 import com.feis.splitnings.features.issuedPaycheck.data.dto.request.IssuedPaycheckCreateDto;
 import com.feis.splitnings.features.issuedPaycheck.data.dto.response.IssuedPaycheckDto;
-import com.feis.splitnings.security.utils.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -67,7 +66,7 @@ public class AccountController {
     @GetMapping("/{" + ID_NAME + "}")
     public ResponseEntity<SuccessResponse<AccountDto>> getAccountById(
             @PathVariable(name = ID_NAME) Integer id) {
-        AccountDto dto = accountService.getByIdAndUserId(id, SecurityUtils.getJwtUserId());
+        AccountDto dto = accountService.get(id);
 
         HttpStatus responseStatus = HttpStatus.OK;
         SuccessResponse<AccountDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " was found", dto);

@@ -42,12 +42,13 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     private final static Logger logger = LogManager.getLogger(SplitService.class);
 
     public SplitService(SplitMapper splitMapper, SplitRepository splitRepository, AccountReadService accountReadService,
-            SplitReadService splitReadService, GoalReadService goalReadService) {
+            SplitReadService splitReadService, SplitPermissionChecker splitPermissionChecker, GoalReadService goalReadService) {
 
         this.mapper = splitMapper;
         this.repository = splitRepository;
         this.accountReadService = accountReadService;
         this.splitReadService = splitReadService;
+        this.permissionChecker = splitPermissionChecker;
         this.goalReadService = goalReadService;
         this.resourceName = "Split";
     }
@@ -82,7 +83,9 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      */
     @Transactional(rollbackFor = Exception.class)
     public void topUpByAmountAndAccountId(Integer accountId, Double topUpAmount) {
-        accountReadService.getById(accountId);
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        ((SplitPermissionChecker) permissionChecker).checkUpdatePermissionByAccountId(jwtUserId, accountId);
 
         List<Split> accountSplits = splitReadService.getAllByAccountId(accountId);
 
@@ -112,7 +115,11 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      */
     @Transactional(rollbackFor = Exception.class)
     public void topUpByAmount(Integer splitId, Double topUpAmount) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         Split split = splitReadService.getById(splitId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, split);
 
         Double splitPreviousTheoreticalAmount = split.getTheoreticalAmount();
         Double splitPreviousAvailableAmount = split.getAvailableAmount();
@@ -135,7 +142,11 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      */
     @Transactional(rollbackFor = Exception.class)
     public void chargeSplit(Integer id, Double chargeAmount) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
         Split split = splitReadService.getById(id);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, split);
 
         Double previousAvailableAmount = split.getAvailableAmount();
 
@@ -170,28 +181,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
             logger.info("RefreshTheoreticalAmountsByAccountId ::: Updated split {} theoretical amount to {}. Was {}.", split.getId(), updatedTheoreticalAmount, previousTheoreticalAmount);
         });
-    }
-
-    // TODO: Remove this override as ordering changed on the AbstractService itself
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public SplitDto update(Integer id, SplitUpdateDto updateDto) {
-        Split existing = repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(resourceName, id.toString()));
-
-        doValidate(updateDto);
-        validateUpdateDto(updateDto, existing);
-
-        // Moved `doUpdate` before mapping because previous split
-        // information is required to correctly perform
-        // allocated percentages calculations
-        doUpdate(existing, updateDto);
-        convertUpdateDtoToEntity(updateDto, existing);
-        Split saved = save(existing);
-
-        logger.info("Update ::: Updated {} with id {}", resourceName, id);
-
-        return convertToDto(saved);
     }
 
     @Override
@@ -267,11 +256,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             Error error = new Error(InternalErrorCode.CONFLICT, "Delete or move linked goals before proceeding.");
             throw new ValidationException(List.of(error));
         }
-    }
-
-    @Override
-    protected Integer getResourceId(Split entity) {
-        return entity.getId();
     }
 
     @Override

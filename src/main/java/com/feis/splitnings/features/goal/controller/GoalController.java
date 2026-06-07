@@ -187,8 +187,7 @@ public class GoalController {
     @PatchMapping("/{" + ID_NAME + "}/uncomplete")
     public ResponseEntity<SuccessResponse<GoalDto>> uncompleteGoal(
             @PathVariable(name = ID_NAME) Integer id) {
-        // TODO: goalOrchestrator.uncompleteGoal(id);
-        GoalDto dto = goalService.uncomplete(id);
+        GoalDto dto = goalOrchestrator.uncompleteGoal(id);
 
         HttpStatus responseStatus = HttpStatus.OK;
         SuccessResponse<GoalDto> response = new SuccessResponse<>(responseStatus.value(), ITEM_NAME + " was uncompleted", dto);

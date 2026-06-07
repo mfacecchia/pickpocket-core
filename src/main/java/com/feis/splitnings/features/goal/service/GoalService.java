@@ -173,6 +173,27 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public GoalDto refreshAmount(Integer goalId) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Goal goal = goalReadService.getById(goalId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, goal);
+
+        Split linkedSplit = splitReadService.getById(goal.getSplitId());
+
+        double goalPrevAmount = goal.getCurrentAmount();
+
+        refreshGoalAmount(goal, linkedSplit.getAvailableAmount());
+
+        repository.save(goal);
+
+        logger.info("RefreshAmount ::: Updated goal {} amount. {}, was {}", goalId, goal.getCurrentAmount(), goalPrevAmount);
+
+        return convertToDto(goal);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public GoalDto complete(Integer goalId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
@@ -202,7 +223,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     public GoalDto uncomplete(Integer goalId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        // TODO: Delete linked purchase on goal uncomplete
         Goal goal = goalReadService.getById(goalId);
 
         permissionChecker.checkUpdatePermission(jwtUserId, goal);
@@ -214,7 +234,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
         goal.setCompleted(false);
         goal.setCompletedAt(null);
-        updateGoalAmount(goal, goal.getSplit().getAvailableAmount());
 
         repository.save(goal);
 

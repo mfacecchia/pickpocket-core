@@ -147,6 +147,10 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         } catch (ValidationException e) {
             validationErrors.addAll(e.getErrors());
         }
+
+        if (!validationErrors.isEmpty()) {
+            throw new ValidationException(validationErrors);
+        }
     }
 
     private Purchase convertToEntity(PurchaseCreateDto createDto, Integer goalId) {

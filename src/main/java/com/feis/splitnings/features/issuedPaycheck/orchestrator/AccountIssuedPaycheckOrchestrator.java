@@ -46,7 +46,7 @@ public class AccountIssuedPaycheckOrchestrator {
 
         accountService.topUpAccount(accountId, issuedAmount);
         topUpSplitsForAccount(issuedPaycheckCreateDto);
-        goalService.updateGoalsAmountByAccountId(accountId);
+        goalService.refreshGoalsAmountByAccountId(accountId);
 
         return issuedPaycheckService.create(issuedPaycheckCreateDto);
     }

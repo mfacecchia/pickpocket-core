@@ -127,7 +127,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
         Split split = splitReadService.getById(toCreate.getSplitId());
 
-        updateGoalAmount(toCreate, split.getAvailableAmount());
+        refreshGoalAmount(toCreate, split.getAvailableAmount());
 
         toCreate.setCreatedBy(jwtUserId.toString());
         toCreate.setModifiedBy(jwtUserId.toString());
@@ -145,28 +145,28 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
             Split split = splitReadService.getByIdAndUserId(updateDto.getSplitId(), jwtUserId, false);
 
             toUpdate.setTargetAmount(updateDto.getTargetAmount());
-            updateGoalAmount(toUpdate, split.getAvailableAmount());
+            refreshGoalAmount(toUpdate, split.getAvailableAmount());
         }
 
         toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateGoalsAmountByAccountId(Integer accountId) {
+    public void refreshGoalsAmountByAccountId(Integer accountId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         ((GoalPermissionChecker) permissionChecker).checkUpdatePermissionByAccountId(jwtUserId, accountId);
 
         List<Goal> accountGoals = goalReadService.getAllNotCompletedByAccountIdFetchSplit(accountId);
 
-        logger.info("UpdateGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
+        logger.info("RefreshGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
 
         accountGoals.forEach((goal) -> {
             double goalPrevAmount = goal.getCurrentAmount();
 
-            updateGoalAmount(goal, goal.getSplit().getAvailableAmount());
+            refreshGoalAmount(goal, goal.getSplit().getAvailableAmount());
 
-            logger.info("UpdateGoalsAmountByAccountId ::: Updated goal {} amount. {}, was {}", goal.getId(), goal.getCurrentAmount(), goalPrevAmount);
+            logger.info("RefreshGoalsAmountByAccountId ::: Updated goal {} amount. {}, was {}", goal.getId(), goal.getCurrentAmount(), goalPrevAmount);
         });
 
         repository.saveAll(accountGoals);
@@ -229,7 +229,11 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         entity.setModifiedBy(jwtUserId.toString());
     }
 
-    private void updateGoalAmount(Goal goal, Double splitAvailableAmount) {
+    /**
+     * Updates the defined {@code goal} amount based on the current split available amount
+     * accordingly.
+     */
+    private void refreshGoalAmount(Goal goal, Double splitAvailableAmount) {
         if (splitAvailableAmount <= 0) {
             goal.setCurrentAmount(0.00);
         }

@@ -19,6 +19,11 @@ public class PurchaseReadService {
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 
+    public Purchase getByGoalId(Integer goalId) {
+        return purchaseRepository.findByGoalIdAndDeleted(goalId, false).orElseThrow(
+                () -> new ResourceNotFoundException(resourceName, "goalId", goalId.toString()));
+    }
+
     public Boolean existsByIdAndUserId(Integer id, Integer userId) {
         return purchaseRepository.existsByIdAndSplitAccountUserId(id, userId);
     }

@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PurchaseService extends AbstractService<Purchase, PurchaseDto, PurchaseCreateDto, PurchaseUpdateDto, PurchasePageDto, Integer> {
     private final SplitReadService splitReadService;
     private final GoalReadService goalReadService;
+    private final PurchaseReadService purchaseReadService;
 
     public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService,
             PurchaseReadService purchaseReadService, PurchasePermissionChecker purchasePermissionChecker, GoalReadService goalReadService) {
@@ -39,9 +40,15 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         this.splitReadService = splitReadService;
         this.permissionChecker = purchasePermissionChecker;
         this.goalReadService = goalReadService;
+        this.purchaseReadService = purchaseReadService;
         this.resourceName = "Purchase";
     }
 
+    /**
+     * Creates a new purchase and link it to a
+     * specific goal.
+     */
+    @Transactional(rollbackFor = Exception.class)
     public PurchaseDto createCompletedGoalPurchase(PurchaseCreateDto createDto, Integer goalId) {
         doValidate(createDto);
         validateCompletedGoalPurchaseCreateDto(createDto, goalId);
@@ -55,6 +62,20 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         logger.info("CreateCompletedGoalPurchase ::: Created new {} with id {}", resourceName, saved.getId());
 
         return convertToDto(saved);
+    }
+
+    // TODO: Remove this override once hard delete is implemented
+    //  on the abstractService
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void delete(Integer id) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Purchase purchase = purchaseReadService.getById(id);
+
+        permissionChecker.checkDeletePermission(jwtUserId, purchase);
+
+        hardDelete(purchase);
     }
 
     @Override

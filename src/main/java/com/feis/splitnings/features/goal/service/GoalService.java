@@ -127,7 +127,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
         Split split = splitReadService.getById(toCreate.getSplitId());
 
-        updateGoalAmount(toCreate, split.getAvailableAmount());
+        refreshGoalAmount(toCreate, split.getAvailableAmount());
 
         toCreate.setCreatedBy(jwtUserId.toString());
         toCreate.setModifiedBy(jwtUserId.toString());
@@ -145,37 +145,58 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
             Split split = splitReadService.getByIdAndUserId(updateDto.getSplitId(), jwtUserId, false);
 
             toUpdate.setTargetAmount(updateDto.getTargetAmount());
-            updateGoalAmount(toUpdate, split.getAvailableAmount());
+            refreshGoalAmount(toUpdate, split.getAvailableAmount());
         }
 
         toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateGoalsAmountByAccountId(Integer accountId) {
+    public void refreshGoalsAmountByAccountId(Integer accountId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         ((GoalPermissionChecker) permissionChecker).checkUpdatePermissionByAccountId(jwtUserId, accountId);
 
         List<Goal> accountGoals = goalReadService.getAllNotCompletedByAccountIdFetchSplit(accountId);
 
-        logger.info("UpdateGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
+        logger.info("RefreshGoalsAmountByAccountId ::: Updating amounts for {} goals from account {}", accountGoals.size(), accountId);
 
         accountGoals.forEach((goal) -> {
             double goalPrevAmount = goal.getCurrentAmount();
 
-            updateGoalAmount(goal, goal.getSplit().getAvailableAmount());
+            refreshGoalAmount(goal, goal.getSplit().getAvailableAmount());
 
-            logger.info("UpdateGoalsAmountByAccountId ::: Updated goal {} amount. {}, was {}", goal.getId(), goal.getCurrentAmount(), goalPrevAmount);
+            logger.info("RefreshGoalsAmountByAccountId ::: Updated goal {} amount. {}, was {}", goal.getId(), goal.getCurrentAmount(), goalPrevAmount);
         });
 
         repository.saveAll(accountGoals);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public GoalDto refreshAmount(Integer goalId) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Goal goal = goalReadService.getById(goalId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, goal);
+
+        Split linkedSplit = splitReadService.getById(goal.getSplitId());
+
+        double goalPrevAmount = goal.getCurrentAmount();
+
+        refreshGoalAmount(goal, linkedSplit.getAvailableAmount());
+
+        repository.save(goal);
+
+        logger.info("RefreshAmount ::: Updated goal {} amount. {}, was {}", goalId, goal.getCurrentAmount(), goalPrevAmount);
+
+        return convertToDto(goal);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public GoalDto complete(Integer goalId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        // TODO: Create purchase on goal completion
         Goal goal = goalReadService.getById(goalId);
 
         permissionChecker.checkUpdatePermission(jwtUserId, goal);
@@ -198,10 +219,10 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         return mapper.mapToDto(goal);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public GoalDto uncomplete(Integer goalId) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        // TODO: Delete linked purchase on goal uncomplete
         Goal goal = goalReadService.getById(goalId);
 
         permissionChecker.checkUpdatePermission(jwtUserId, goal);
@@ -213,7 +234,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
         goal.setCompleted(false);
         goal.setCompletedAt(null);
-        updateGoalAmount(goal, goal.getSplit().getAvailableAmount());
 
         repository.save(goal);
 
@@ -228,7 +248,11 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         entity.setModifiedBy(jwtUserId.toString());
     }
 
-    private void updateGoalAmount(Goal goal, Double splitAvailableAmount) {
+    /**
+     * Updates the defined {@code goal} amount based on the current split available amount
+     * accordingly.
+     */
+    private void refreshGoalAmount(Goal goal, Double splitAvailableAmount) {
         if (splitAvailableAmount <= 0) {
             goal.setCurrentAmount(0.00);
         }

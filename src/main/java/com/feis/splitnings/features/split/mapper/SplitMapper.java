@@ -29,7 +29,6 @@ public class SplitMapper implements BaseMapper<Split, SplitDto, SplitCreateDto, 
         // Auditing
         entity.setCreatedBy(dto.getCreatedBy());
         entity.setCreatedDate(dto.getCreatedDate());
-        entity.setDeleted(dto.getDeleted());
         entity.setModifiedBy(dto.getModifiedBy());
         entity.setModifiedDate(dto.getModifiedDate());
 
@@ -52,7 +51,6 @@ public class SplitMapper implements BaseMapper<Split, SplitDto, SplitCreateDto, 
         // Auditing
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setDeleted(entity.getDeleted());
         dto.setModifiedBy(entity.getModifiedBy());
         dto.setModifiedDate(entity.getModifiedDate());
 

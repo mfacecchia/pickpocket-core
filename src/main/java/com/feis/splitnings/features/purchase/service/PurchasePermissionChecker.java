@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class PurchasePermissionChecker extends AbstractPermissionChecker<Purchase> {
     private final PurchaseReadService purchaseReadService;
 
+    // TODO: Check for existence by direct match with account instead of splitId
     @Override
     protected Boolean isResourceOwner(Integer userId, Purchase entity) {
         return purchaseReadService.existsByIdAndUserId(entity.getId(), userId);

@@ -18,6 +18,7 @@ public class AccountSplitOrchestrator {
 
     @Transactional(rollbackFor = Exception.class)
     public AccountDto createAccountAndDefaultSplit(AccountCreateDto accountCreateDto) {
+        // TODO: Create paycheck if `initialAmount` is set
         AccountDto accountDto = accountService.create(accountCreateDto);
         splitService.createDefaultSplit(accountDto.getId(), accountDto.getWealth());
 

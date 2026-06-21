@@ -5,7 +5,6 @@ import com.feis.splitnings.features.split.data.Split;
 import com.feis.splitnings.features.split.repository.SplitRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -30,14 +29,10 @@ public class SplitReadService {
         return splitRepository.findAllByAccountUserId(userId);
     }
 
-    public Split getByIdAndUserId(Integer id, Integer userId, boolean includeDeleted) {
-        Optional<Split> split = splitRepository.findByIdAndAccountUserId(id, userId);
-
-        if (split.isEmpty() || (includeDeleted && split.get().getDeleted())) {
-            throw new ResourceNotFoundException(resourceName, id.toString());
-        }
-
-        return split.get();
+    public Split getByIdAndUserId(Integer id, Integer userId) {
+        return splitRepository.findByIdAndAccountUserId(id, userId).orElseThrow(
+            () -> new ResourceNotFoundException(resourceName, id.toString())
+        );
     }
 
     public Split getByIdAndAccountId(Integer id, Integer accountId) {

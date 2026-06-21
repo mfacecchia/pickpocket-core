@@ -15,12 +15,12 @@ public class PurchaseReadService {
     private final String resourceName = "Purchase";
 
     public Purchase getById(Integer id) {
-        return purchaseRepository.findByIdAndDeleted(id, false).orElseThrow(
+        return purchaseRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 
     public Purchase getByGoalId(Integer goalId) {
-        return purchaseRepository.findByGoalIdAndDeleted(goalId, false).orElseThrow(
+        return purchaseRepository.findByGoalId(goalId).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, "goalId", goalId.toString()));
     }
 

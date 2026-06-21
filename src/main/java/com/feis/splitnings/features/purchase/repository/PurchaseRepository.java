@@ -12,6 +12,6 @@ public interface PurchaseRepository extends BaseRepository<Purchase, Integer> {
 
     Boolean existsByIdAndSplitAccountUserId(Integer id, Integer userId);
 
-    Optional<Purchase> findByGoalIdAndDeleted(Integer goalId, Boolean deleted);
+    Optional<Purchase> findByGoalId(Integer goalId);
 }
 

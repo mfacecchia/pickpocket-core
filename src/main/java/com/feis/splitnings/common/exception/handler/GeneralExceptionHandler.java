@@ -54,6 +54,7 @@ public class GeneralExceptionHandler {
     public ResponseEntity<ErrorResponse> dataIntegrityViolationHandler(DataIntegrityViolationException ex, WebRequest request) {
         ConstraintViolationException constraintViolationException = (ConstraintViolationException) ex.getCause();
 
+        // FIXME: This reveals too much database information. Update error message.
         Error error = new Error(InternalErrorCode.CONFLICT, constraintViolationException.getSQLException().getMessage(),
                 constraintViolationException.getSQL());
         BaseException baseException = new BaseException();

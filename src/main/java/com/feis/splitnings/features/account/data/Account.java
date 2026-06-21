@@ -3,7 +3,6 @@ package com.feis.splitnings.features.account.data;
 import com.feis.splitnings.common.data.entity.BaseEntity;
 import com.feis.splitnings.features.user.data.User;
 
-import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
@@ -22,7 +21,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Audited
-@SQLRestriction("deleted=false")
 @Entity(name = "account")
 public class Account extends BaseEntity {
     @Column(name = "name", nullable = false)

@@ -30,17 +30,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class PurchaseService extends AbstractService<Purchase, PurchaseDto, PurchaseCreateDto, PurchaseUpdateDto, PurchasePageDto, Integer> {
     private final SplitReadService splitReadService;
     private final GoalReadService goalReadService;
-    private final PurchaseReadService purchaseReadService;
 
     public PurchaseService(PurchaseMapper purchaseMapper, PurchaseRepository purchaseRepository, SplitReadService splitReadService,
-            PurchaseReadService purchaseReadService, PurchasePermissionChecker purchasePermissionChecker, GoalReadService goalReadService) {
+            PurchasePermissionChecker purchasePermissionChecker, GoalReadService goalReadService) {
 
         this.mapper = purchaseMapper;
         this.repository = purchaseRepository;
         this.splitReadService = splitReadService;
         this.permissionChecker = purchasePermissionChecker;
         this.goalReadService = goalReadService;
-        this.purchaseReadService = purchaseReadService;
         this.resourceName = "Purchase";
     }
 
@@ -64,25 +62,11 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         return convertToDto(saved);
     }
 
-    // TODO: Remove this override once hard delete is implemented
-    //  on the abstractService
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void delete(Integer id) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        Purchase purchase = purchaseReadService.getById(id);
-
-        permissionChecker.checkDeletePermission(jwtUserId, purchase);
-
-        hardDelete(purchase);
-    }
-
     @Override
     protected void validateCreateDto(PurchaseCreateDto createDto) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Split split = splitReadService.getByIdAndUserId(createDto.getSplitId(), jwtUserId, false);
+        Split split = splitReadService.getByIdAndUserId(createDto.getSplitId(), jwtUserId);
 
         if (!split.getActive()) {
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, "The linked split is inactive. Reactivate it before proceeding.");
@@ -131,6 +115,9 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
         } else {
             toCreate.setCategory(PurchaseCategory.PURCHASE);
         }
+
+        Split split = splitReadService.getById(toCreate.getSplitId());
+        toCreate.setAccountId(split.getAccountId());
 
         toCreate.setCreatedBy(jwtUserId.toString());
         toCreate.setModifiedBy(jwtUserId.toString());

@@ -52,7 +52,8 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
     public GET_DTO get(PK_TYPE id) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        ENTITY entity = repository.findByIdAndDeleted(id, false).orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
+        ENTITY entity = repository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException(resourceName, id.toString()));
 
         permissionChecker.checkReadPermission(jwtUserId, entity);
 
@@ -62,8 +63,6 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
     }
 
     public PAGEABLE_DTO getAll(CommonSpecificationBuilder<ENTITY> specificationBuilder, Pageable pageable, boolean showTotalCount) {
-        specificationBuilder.whereEqualTo("deleted", false, false);
-
         Specification<ENTITY> specification = specificationBuilder.build();
 
         List<ENTITY> entities;
@@ -121,7 +120,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
     public GET_DTO update(PK_TYPE id, UPDATE_DTO updateDto) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        ENTITY existing = repository.findByIdAndDeleted(id, false).orElseThrow(
+        ENTITY existing = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
 
         permissionChecker.checkUpdatePermission(jwtUserId, existing);
@@ -143,10 +142,10 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
     public void delete(PK_TYPE id) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Optional<ENTITY> existing = repository.findByIdAndDeleted(id, false);
+        Optional<ENTITY> existing = repository.findById(id);
 
         if (existing.isEmpty()) {
-            logger.info("Delete ::: {} with id {} does not exist or was already deleted. Early returning.", resourceName, id);
+            logger.info("Delete ::: {} with id {} does not exist. Early returning.", resourceName, id);
             return;
         }
 
@@ -155,22 +154,11 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
         permissionChecker.checkDeletePermission(jwtUserId, toDelete);
 
         validateDelete(id);
-        softDelete(toDelete);
-    }
-
-    protected void softDelete(ENTITY toDelete) {
         doDelete(toDelete);
 
-        toDelete.setDeleted(true);
-        save(toDelete);
-
-        logger.info("SoftDelete ::: Execute soft delete on {} with id {}", resourceName, toDelete.getId());
-    }
-
-    protected void hardDelete(ENTITY toDelete) {
         repository.delete(toDelete);
 
-        logger.info("HardDelete ::: Execute hard delete on {} with id {}", resourceName, toDelete.getId());
+        logger.info("Delete ::: Deleted {} with id {}", resourceName, toDelete.getId());
     }
 
     protected ENTITY save(ENTITY entity) {

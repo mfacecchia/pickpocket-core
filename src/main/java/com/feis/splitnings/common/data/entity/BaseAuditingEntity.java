@@ -8,7 +8,7 @@ import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,12 +30,5 @@ public class BaseAuditingEntity {
 
     @Column(name = "modified_by")
     protected String modifiedBy;
-
-    @Column(name = "deleted")
-    protected Boolean deleted;
-
-    @PrePersist
-    public void prePersist() {
-        this.deleted = false;
-    }
 }
+

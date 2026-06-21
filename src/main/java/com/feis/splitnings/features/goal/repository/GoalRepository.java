@@ -17,14 +17,13 @@ public interface GoalRepository extends BaseRepository<Goal, Integer> {
         FROM goal g
         JOIN FETCH g.split s
         WHERE s.accountId = :accountId
-        AND g.deleted = false
         AND g.completed = false
     """)
     List<Goal> findAllNotCompletedByAccountIdFetchSplit(Integer accountId);
 
-    Optional<Goal> findByIdAndSplitAccountUserIdAndDeletedFalse(Integer id, Integer userId);
+    Optional<Goal> findByIdAndSplitAccountUserId(Integer id, Integer userId);
 
-    Boolean existsByIdAndSplitAccountUserIdAndDeletedFalse(Integer id, Integer userId);
+    Boolean existsByIdAndSplitAccountUserId(Integer id, Integer userId);
 
-    List<Goal> findBySplitIdAndDeletedFalse(Integer splitId);
+    List<Goal> findBySplitId(Integer splitId);
 }

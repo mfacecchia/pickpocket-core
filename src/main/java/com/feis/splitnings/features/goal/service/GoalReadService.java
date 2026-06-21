@@ -28,16 +28,16 @@ public class GoalReadService {
     }
 
     public Goal getByIdAndUserId(Integer id, Integer userId) {
-        return goalRepository.findByIdAndSplitAccountUserIdAndDeletedFalse(id, userId).orElseThrow(
+        return goalRepository.findByIdAndSplitAccountUserId(id, userId).orElseThrow(
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 
     public Boolean existsByIdAndUserId(Integer id, Integer userId) {
-        return goalRepository.existsByIdAndSplitAccountUserIdAndDeletedFalse(id, userId);
+        return goalRepository.existsByIdAndSplitAccountUserId(id, userId);
     }
 
     public List<Goal> getBySplitId(Integer splitId) {
-        return goalRepository.findBySplitIdAndDeletedFalse(splitId);
+        return goalRepository.findBySplitId(splitId);
     }
 }
 

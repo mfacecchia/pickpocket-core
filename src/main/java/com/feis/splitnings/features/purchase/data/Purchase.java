@@ -1,6 +1,7 @@
 package com.feis.splitnings.features.purchase.data;
 
 import com.feis.splitnings.common.data.entity.BaseEntity;
+import com.feis.splitnings.features.account.data.Account;
 import com.feis.splitnings.features.goal.data.Goal;
 import com.feis.splitnings.features.purchase.data.enums.PurchaseCategory;
 import com.feis.splitnings.features.split.data.Split;
@@ -37,8 +38,11 @@ public class Purchase extends BaseEntity {
     @Column(name = "goal_id", nullable = true)
     private Integer goalId;
 
-    @Column(name = "split_id", nullable = false)
+    @Column(name = "split_id", nullable = true)
     private Integer splitId;
+
+    @Column(name = "account_id", nullable = false)
+    private Integer accountId;
 
     @Column(name = "category", nullable = false)
     private PurchaseCategory category;
@@ -49,8 +53,12 @@ public class Purchase extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Goal goal;
 
-    @JoinColumn(name = "split_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "split_id", nullable = true, insertable = false, updatable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Split split;
+
+    @JoinColumn(name = "account_id", nullable = false, insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Account account;
 }
 

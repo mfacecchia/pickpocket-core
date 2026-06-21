@@ -96,8 +96,7 @@ public class PurchaseController {
                 .like(Field.name.getPath(), name, false)
                 .like(Field.description.getPath(), description, false)
                 .whereEqualTo(Field.category.getPath(), category, false)
-                .whereEqualTo(Field.splitId.getPath(), splitId, false)
-                .whereEqualTo(Field.deleted.getPath(), false, false);
+                .whereEqualTo(Field.splitId.getPath(), splitId, false);
 
         PurchasePageDto pageDto = purchaseService.getAll(specificationBuilder, pageable, showTotalPageCount);
         HttpStatus responseStatus = HttpStatus.OK;

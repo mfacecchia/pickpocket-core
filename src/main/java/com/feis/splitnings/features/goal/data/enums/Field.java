@@ -8,7 +8,6 @@ public enum Field {
     name("name"),
     completed("completed"),
     splitId("splitId"),
-    deleted("deleted"),
     accountId("split.accountId");
 
     private final String path;

@@ -97,8 +97,7 @@ public class GoalController {
                 .like(Field.name.getPath(), name, false)
                 .whereEqualTo(Field.completed.getPath(), completed, false)
                 .whereEqualTo(Field.splitId.getPath(), splitId, false)
-                .whereEqualTo(Field.accountId.getPath(), accountId, false)
-                .whereEqualTo(Field.deleted.getPath(), false, false);
+                .whereEqualTo(Field.accountId.getPath(), accountId, false);
 
         GoalPageDto pageDto = goalService.getAll(specificationBuilder, pageable, showTotalPageCount);
         HttpStatus responseStatus = HttpStatus.OK;

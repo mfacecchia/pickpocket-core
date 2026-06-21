@@ -1,6 +1,7 @@
 package com.feis.splitnings.features.cashTransfer.data;
 
 import com.feis.splitnings.common.data.entity.BaseEntity;
+import com.feis.splitnings.features.account.data.Account;
 import com.feis.splitnings.features.split.data.Split;
 
 import org.hibernate.envers.Audited;
@@ -27,12 +28,27 @@ public class CashTransfer extends BaseEntity {
     @Column(name = "amount", nullable = false)
     private Double amount;
 
-    @JoinColumn(name = "from_split_id", nullable = false)
+    @Column(name = "from_split_id", nullable = true)
+    private Integer fromSplitId;
+
+    @Column(name = "to_split_id", nullable = true)
+    private Integer toSplitId;
+
+    @Column(name = "account_id", nullable = false)
+    private Integer accountId;
+
+    /* ---RELATIONSHIPS--- */
+
+    @JoinColumn(name = "from_split_id", nullable = true, insertable = false, updatable = false)
     @ManyToOne
     private Split fromSplit;
 
-    @JoinColumn(name = "to_split_id", nullable = false)
+    @JoinColumn(name = "to_split_id", nullable = true, insertable = false, updatable = false)
     @ManyToOne
     private Split toSplit;
+
+    @JoinColumn(name = "account_id", nullable = false, insertable = false, updatable = false)
+    @ManyToOne
+    private Account account;
 }
 

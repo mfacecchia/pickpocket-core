@@ -322,6 +322,10 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     protected void doDelete(Split entity) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
+        // FIXME: The available amount is not updated at all, meaning that
+        //  on delete the total splits available amounts sum does not reflect
+        //  account's declared wealth. Need to move split amount to the default split
+        //  as well.
         updateDefaultSplit(entity.getAccountId(), entity.getSplitPercentage(), jwtUserId.toString());
 
         entity.setModifiedBy(jwtUserId.toString());
@@ -341,6 +345,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      */
     @Transactional(rollbackFor = Exception.class)
     private void updateDefaultSplit(int accountId, short updateBy, String auditor) {
+        // TODO: reads on this table must obtain a write lock
         Split defaultSplit = getDefaultSplitByAccountId(accountId);
 
         short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + updateBy);

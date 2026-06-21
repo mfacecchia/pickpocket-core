@@ -47,7 +47,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     protected void validateCreateDto(GoalCreateDto createDto) {
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
-        Split split = splitReadService.getByIdAndUserId(createDto.getSplitId(), jwtUserId, false);
+        Split split = splitReadService.getByIdAndUserId(createDto.getSplitId(), jwtUserId);
 
         if (!split.getActive()) {
             String errorMessage = "The split is not active, to link this goal to the split, first reactivate it";
@@ -75,7 +75,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
         // This will throw a `ResourceNotFoundException` if not found,
         // used to check whether the new split exists for the requesting user
-        Split split = splitReadService.getByIdAndUserId(updateDto.getSplitId(), jwtUserId, false);
+        Split split = splitReadService.getByIdAndUserId(updateDto.getSplitId(), jwtUserId);
 
         // Cannot move goal to another split if such is inactive
         if (!existing.getSplitId().equals(updateDto.getSplitId()) && !split.getActive()) {
@@ -142,7 +142,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         if (!toUpdate.getSplitId().equals(updateDto.getSplitId()) ||
                 !toUpdate.getTargetAmount().equals(updateDto.getTargetAmount())) {
 
-            Split split = splitReadService.getByIdAndUserId(updateDto.getSplitId(), jwtUserId, false);
+            Split split = splitReadService.getByIdAndUserId(updateDto.getSplitId(), jwtUserId);
 
             toUpdate.setTargetAmount(updateDto.getTargetAmount());
             refreshGoalAmount(toUpdate, split.getAvailableAmount());

@@ -25,7 +25,7 @@ public class PurchaseReadService {
     }
 
     public Boolean existsByIdAndUserId(Integer id, Integer userId) {
-        return purchaseRepository.existsByIdAndSplitAccountUserId(id, userId);
+        return purchaseRepository.existsByIdAndAccountUserId(id, userId);
     }
 }
 

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 import lombok.Setter;
 
-@JsonPropertyOrder({"id", "name", "description", "amount", "category", "goalId", "splitId"})
+@JsonPropertyOrder({"id", "name", "description", "amount", "category", "goalId", "splitId", "accountId"})
 @Getter
 @Setter
 public class PurchaseDto extends BaseGetDto {
@@ -18,5 +18,6 @@ public class PurchaseDto extends BaseGetDto {
     private PurchaseCategory category;
     private Integer goalId;
     private Integer splitId;
+    private Integer accountId;
 }
 

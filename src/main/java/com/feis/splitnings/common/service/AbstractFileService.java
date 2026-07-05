@@ -49,7 +49,7 @@ public abstract class AbstractFileService<ENTITY extends BaseFileEntity, GET_DTO
             doCreate(entity);
         }
 
-        ENTITY saved = save(entity);
+        ENTITY saved = repository.saveAndFlush(entity);
 
         logger.info("Create ::: File created and uploaded with name {} and id {}", saved.getFilename(), saved.getId());
 

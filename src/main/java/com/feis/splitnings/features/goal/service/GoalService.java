@@ -123,14 +123,10 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
     @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doCreate(Goal toCreate) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
         Split split = splitReadService.getById(toCreate.getSplitId());
 
         refreshGoalAmount(toCreate, split.getAvailableAmount());
 
-        toCreate.setCreatedBy(jwtUserId.toString());
-        toCreate.setModifiedBy(jwtUserId.toString());
         toCreate.setCompleted(false);
     }
 
@@ -147,8 +143,6 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
             toUpdate.setTargetAmount(updateDto.getTargetAmount());
             refreshGoalAmount(toUpdate, split.getAvailableAmount());
         }
-
-        toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -169,7 +163,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
             logger.info("RefreshGoalsAmountByAccountId ::: Updated goal {} amount. {}, was {}", goal.getId(), goal.getCurrentAmount(), goalPrevAmount);
         });
 
-        repository.saveAll(accountGoals);
+        repository.saveAllAndFlush(accountGoals);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -186,7 +180,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
 
         refreshGoalAmount(goal, linkedSplit.getAvailableAmount());
 
-        repository.save(goal);
+        repository.saveAndFlush(goal);
 
         logger.info("RefreshAmount ::: Updated goal {} amount. {}, was {}", goalId, goal.getCurrentAmount(), goalPrevAmount);
 
@@ -214,7 +208,7 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         goal.setCompleted(true);
         goal.setCompletedAt(Instant.now());
 
-        repository.save(goal);
+        repository.saveAndFlush(goal);
 
         return mapper.mapToDto(goal);
     }
@@ -235,17 +229,9 @@ public class GoalService extends AbstractService<Goal, GoalDto, GoalCreateDto, G
         goal.setCompleted(false);
         goal.setCompletedAt(null);
 
-        repository.save(goal);
+        repository.saveAndFlush(goal);
 
         return mapper.mapToDto(goal);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    protected void doDelete(Goal entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        entity.setModifiedBy(jwtUserId.toString());
     }
 
     /**

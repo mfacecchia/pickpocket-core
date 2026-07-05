@@ -48,9 +48,8 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
         Double previousWealth = account.getWealth();
 
         account.setWealth(account.getWealth() + topUpAmount);
-        account.setModifiedBy(jwtUserId.toString());
 
-        repository.save(account);
+        repository.saveAndFlush(account);
 
         logger.info("TopUpAccount ::: Updated account {} wealth to {}. Was {}", accountId, account.getWealth(), previousWealth);
 
@@ -70,9 +69,8 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
         Double previousWealth = account.getWealth();
 
         account.setWealth(account.getWealth() - chargeAmount);
-        account.setModifiedBy(jwtUserId.toString());
 
-        repository.save(account);
+        repository.saveAndFlush(account);
 
         logger.info("ChargeAccount ::: Updated account {} wealth to {}. Was {}", accountId, account.getWealth(), previousWealth);
 
@@ -125,18 +123,6 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
         Integer jwtUserId = SecurityUtils.getJwtUserId();
 
         toCreate.setUserId(jwtUserId);
-        toCreate.setCreatedBy(jwtUserId.toString());
-        toCreate.setModifiedBy(jwtUserId.toString());
-    }
-
-    @Override
-    protected void doUpdate(Account toUpdate, AccountUpdateDto updateDto) {
-        toUpdate.setModifiedBy(SecurityUtils.getJwtUserId().toString());
-    }
-
-    @Override
-    protected void doDelete(Account toDelete) {
-        toDelete.setModifiedBy(SecurityUtils.getJwtUserId().toString());
     }
 }
 

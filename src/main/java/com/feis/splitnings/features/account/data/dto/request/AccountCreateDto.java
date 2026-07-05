@@ -1,6 +1,6 @@
 package com.feis.splitnings.features.account.data.dto.request;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -18,6 +18,6 @@ public class AccountCreateDto {
     private String description;
 
     @NotNull(message = "{field.required}")
-    @Min(value = 0, message = "{field.min}")
+    @DecimalMin(value = "0.00", message = "{field.min}")
     private Double initialAmount;
 }

@@ -65,13 +65,9 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
         Split toCreate = SplitUtils.buildDefaultSplit(amount, accountId);
-        toCreate.setCreatedBy(jwtUserId.toString());
-        toCreate.setModifiedBy(jwtUserId.toString());
 
-        repository.save(toCreate);
+        repository.saveAndFlush(toCreate);
 
         return convertToDto(toCreate);
     }
@@ -102,7 +98,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             Double splitAvailableAmount = SplitUtils.computeSplitAmount(topUpAmount, splitPercentage, splitPreviousAvailableAmount);
             split.setAvailableAmount(splitAvailableAmount);
 
-            repository.save(split);
+            repository.saveAndFlush(split);
 
             logger.info("TopUpByAmountAndAccountId ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
         });
@@ -131,7 +127,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         Double splitAvailableAmount = splitPreviousAvailableAmount + topUpAmount;
         split.setAvailableAmount(splitAvailableAmount);
 
-        repository.save(split);
+        repository.saveAndFlush(split);
 
         logger.info("TopUpByAmount ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
     }
@@ -152,7 +148,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         split.setAvailableAmount(split.getAvailableAmount() - chargeAmount);
 
-        repository.save(split);
+        repository.saveAndFlush(split);
 
         logger.info("ChargeSplit ::: Updated split {} available amount to {}. Was {}", split.getId(), split.getAvailableAmount(), previousAvailableAmount);
     }
@@ -177,7 +173,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             Double updatedTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), splitPercentage);
             split.setTheoreticalAmount(updatedTheoreticalAmount);
 
-            repository.save(split);
+            repository.saveAndFlush(split);
 
             logger.info("RefreshTheoreticalAmountsByAccountId ::: Updated split {} theoretical amount to {}. Was {}.", split.getId(), updatedTheoreticalAmount, previousTheoreticalAmount);
         });
@@ -284,11 +280,9 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doCreate(Split toCreate) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
         // Default split percentage needs to be decreased by new split amount, therefore
         // we pass the same value, but prefix it with `-` sign.
-        updateDefaultSplit(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1), jwtUserId.toString());
+        updateDefaultSplit(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1));
 
         Account account = accountReadService.getById(toCreate.getAccountId());
         double splitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), toCreate.getSplitPercentage());
@@ -297,38 +291,27 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         toCreate.setActive(true);
         toCreate.setIsDefault(false);
-
-        toCreate.setCreatedBy(jwtUserId.toString());
-        toCreate.setModifiedBy(jwtUserId.toString());
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doUpdate(Split toUpdate, SplitUpdateDto updateDto) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
         short defaultSplitPercentageIncrBy = (short) (toUpdate.getSplitPercentage() - updateDto.getSplitPercentage());
-        updateDefaultSplit(toUpdate.getAccountId(), defaultSplitPercentageIncrBy, jwtUserId.toString());
+        updateDefaultSplit(toUpdate.getAccountId(), defaultSplitPercentageIncrBy);
 
         Account account = accountReadService.getById(toUpdate.getAccountId());
         double splitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), updateDto.getSplitPercentage());
         toUpdate.setTheoreticalAmount(splitTheoreticalAmount);
-
-        toUpdate.setModifiedBy(jwtUserId.toString());
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doDelete(Split entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
         // FIXME: The available amount is not updated at all, meaning that
         //  on delete the total splits available amounts sum does not reflect
         //  account's declared wealth. Need to move split amount to the default split
         //  as well.
-        updateDefaultSplit(entity.getAccountId(), entity.getSplitPercentage(), jwtUserId.toString());
-
-        entity.setModifiedBy(jwtUserId.toString());
+        updateDefaultSplit(entity.getAccountId(), entity.getSplitPercentage());
     }
 
     /**
@@ -340,11 +323,9 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      * @param updateBy - the percentage amount to increase/decrease by.
      *  Negative values are expected here as well to decrease default split
      *  allocated percentage
-     * @param auditor who triggered the default split update. This field generally matches
-     *  the authenticated user making the web request
      */
     @Transactional(rollbackFor = Exception.class)
-    private void updateDefaultSplit(int accountId, short updateBy, String auditor) {
+    private void updateDefaultSplit(int accountId, short updateBy) {
         // TODO: reads on this table must obtain a write lock
         Split defaultSplit = getDefaultSplitByAccountId(accountId);
 
@@ -356,8 +337,6 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         double updatedDefaultSplitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), updatedDefaultSplitPercentage);
         defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
-
-        defaultSplit.setModifiedBy(auditor);
     }
 
     private Split getDefaultSplitByAccountId(Integer accountId) {

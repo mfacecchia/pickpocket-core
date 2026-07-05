@@ -55,7 +55,7 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
 
         doCreate(entity);
 
-        Purchase saved = save(entity);
+        Purchase saved = repository.saveAndFlush(entity);
 
         logger.info("CreateCompletedGoalPurchase ::: Created new {} with id {}", resourceName, saved.getId());
 
@@ -108,8 +108,6 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
     @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doCreate(Purchase toCreate) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
         if (toCreate.getGoalId() != null) {
             toCreate.setCategory(PurchaseCategory.COMPLETED_GOAL);
         } else {
@@ -118,25 +116,6 @@ public class PurchaseService extends AbstractService<Purchase, PurchaseDto, Purc
 
         Split split = splitReadService.getById(toCreate.getSplitId());
         toCreate.setAccountId(split.getAccountId());
-
-        toCreate.setCreatedBy(jwtUserId.toString());
-        toCreate.setModifiedBy(jwtUserId.toString());
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    protected void doUpdate(Purchase toUpdate, PurchaseUpdateDto updateDto) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        toUpdate.setModifiedBy(jwtUserId.toString());
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    protected void doDelete(Purchase entity) {
-        Integer jwtUserId = SecurityUtils.getJwtUserId();
-
-        entity.setModifiedBy(jwtUserId.toString());
     }
 
     private void validateCompletedGoalPurchaseCreateDto(PurchaseCreateDto createDto, Integer goalId) {

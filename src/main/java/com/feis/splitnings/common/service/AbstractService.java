@@ -110,7 +110,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
         validateCreateDto(createDto);
         ENTITY entity = convertToEntity(createDto);
         doCreate(entity);
-        ENTITY saved = save(entity);
+        ENTITY saved = repository.saveAndFlush(entity);
 
         logger.info("Create ::: Created new {} with id {}", resourceName, saved.getId());
 
@@ -132,7 +132,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
         doUpdate(existing, updateDto);
         convertUpdateDtoToEntity(updateDto, existing);
 
-        ENTITY saved = save(existing);
+        ENTITY saved = repository.saveAndFlush(existing);
 
         logger.info("Update ::: Updated {} with id {}", resourceName, id);
 
@@ -160,10 +160,6 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
         repository.delete(toDelete);
 
         logger.info("Delete ::: Deleted {} with id {}", resourceName, toDelete.getId());
-    }
-
-    protected ENTITY save(ENTITY entity) {
-        return repository.save(entity);
     }
 
     protected void doValidate(Object dto) {

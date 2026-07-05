@@ -67,6 +67,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
         List<ENTITY> entities;
         if (pageable != null) {
+            // FIXME: Since filterring is applied later, all query results are loaded in memory
             entities = repository.findAll(specification, pageable.getSort());
         } else {
             entities = repository.findAll(specification);

@@ -14,6 +14,8 @@ import com.feis.splitnings.security.utils.SecurityUtils;
 
 import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -99,6 +101,23 @@ public class AccountService extends AbstractService<Account, AccountDto, Account
     protected void validateDelete(Integer id) {
         ((AccountRepository) repository).findByIdAndUserId(id, SecurityUtils.getJwtUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(resourceName, id.toString()));
+    }
+
+    @Override
+    protected  List<Account> doFilter(List<Account> entityPage) {
+        if (entityPage == null) {
+            return new ArrayList<>();
+        }
+        if (entityPage.isEmpty()) {
+            return entityPage;
+        }
+
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        return entityPage.stream()
+                .filter((entity) ->
+                    entity.getUserId().equals(jwtUserId)
+                ).toList();
     }
 
     @Override

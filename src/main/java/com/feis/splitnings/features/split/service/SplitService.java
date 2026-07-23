@@ -193,7 +193,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        Split defaultSplit = getDefaultSplitByAccountId(createDto.getAccountId());
+        Split defaultSplit = splitReadService.getDefaultSplitByAccountId(createDto.getAccountId());
         if (defaultSplit.getSplitPercentage() < createDto.getSplitPercentage()) {
             String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - createDto.getSplitPercentage()));
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -223,7 +223,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             // actually calculate whether the default split can allocate such more on the updated split
             short percentageDiff = (short) (existingSplitPercentage - updateSplitPercentage);
 
-            Split defaultSplit = getDefaultSplitByAccountId(existing.getAccountId());
+            Split defaultSplit = splitReadService.getDefaultSplitByAccountId(existing.getAccountId());
             if (defaultSplit.getSplitPercentage() + percentageDiff < 0) {
                 String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() + percentageDiff));
                 Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -327,7 +327,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     @Transactional(rollbackFor = Exception.class)
     private void updateDefaultSplit(int accountId, short updateBy) {
         // TODO: reads on this table must obtain a write lock
-        Split defaultSplit = getDefaultSplitByAccountId(accountId);
+        Split defaultSplit = splitReadService.getDefaultSplitByAccountId(accountId);
 
         short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + updateBy);
 

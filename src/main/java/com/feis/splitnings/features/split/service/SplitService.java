@@ -98,10 +98,12 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             Double splitAvailableAmount = SplitUtils.computeSplitAmount(topUpAmount, splitPercentage, splitPreviousAvailableAmount);
             split.setAvailableAmount(splitAvailableAmount);
 
-            repository.saveAndFlush(split);
-
             logger.info("TopUpByAmountAndAccountId ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
         });
+
+        repository.saveAllAndFlush(accountSplits);
+
+        logger.info("TopUpByAmountAndAccountId ::: Updated all {} splits amounts.", accountSplits.size());
     }
 
     /**
@@ -117,19 +119,13 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         permissionChecker.checkUpdatePermission(jwtUserId, split);
 
-        Double splitPreviousTheoreticalAmount = split.getTheoreticalAmount();
         Double splitPreviousAvailableAmount = split.getAvailableAmount();
-        Short splitPercentage = split.getSplitPercentage();
-
-        Double splitTheoreticalAmount = SplitUtils.computeSplitAmount(topUpAmount, splitPercentage, splitPreviousTheoreticalAmount);
-        split.setTheoreticalAmount(splitTheoreticalAmount);
-
         Double splitAvailableAmount = splitPreviousAvailableAmount + topUpAmount;
         split.setAvailableAmount(splitAvailableAmount);
 
         repository.saveAndFlush(split);
 
-        logger.info("TopUpByAmount ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
+        logger.info("TopUpByAmount ::: Updated split {} available amount to {}. Was {}", split.getId(), splitAvailableAmount, splitPreviousAvailableAmount);
     }
 
     /**
@@ -145,8 +141,8 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         permissionChecker.checkUpdatePermission(jwtUserId, split);
 
         Double previousAvailableAmount = split.getAvailableAmount();
-
-        split.setAvailableAmount(split.getAvailableAmount() - chargeAmount);
+        Double updatedAvailableAmount = previousAvailableAmount - chargeAmount;
+        split.setAvailableAmount(updatedAvailableAmount);
 
         repository.saveAndFlush(split);
 
@@ -193,7 +189,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             throw new ConflictException(error);
         }
 
-        Split defaultSplit = getDefaultSplitByAccountId(createDto.getAccountId());
+        Split defaultSplit = splitReadService.getDefaultSplitByAccountId(createDto.getAccountId());
         if (defaultSplit.getSplitPercentage() < createDto.getSplitPercentage()) {
             String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() - createDto.getSplitPercentage()));
             Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -223,7 +219,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             // actually calculate whether the default split can allocate such more on the updated split
             short percentageDiff = (short) (existingSplitPercentage - updateSplitPercentage);
 
-            Split defaultSplit = getDefaultSplitByAccountId(existing.getAccountId());
+            Split defaultSplit = splitReadService.getDefaultSplitByAccountId(existing.getAccountId());
             if (defaultSplit.getSplitPercentage() + percentageDiff < 0) {
                 String errorMessage = String.format("Cannot allocate the requested percentage for such split. Exceeds by %s%%", Math.abs(defaultSplit.getSplitPercentage() + percentageDiff));
                 Error error = new Error(InternalErrorCode.PARAMETER_INVALID, errorMessage);
@@ -282,7 +278,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     protected void doCreate(Split toCreate) {
         // Default split percentage needs to be decreased by new split amount, therefore
         // we pass the same value, but prefix it with `-` sign.
-        updateDefaultSplit(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1));
+        adjustDefaultSplitPercentage(toCreate.getAccountId(), (short) (toCreate.getSplitPercentage() * -1));
 
         Account account = accountReadService.getById(toCreate.getAccountId());
         double splitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), toCreate.getSplitPercentage());
@@ -297,7 +293,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     @Override
     protected void doUpdate(Split toUpdate, SplitUpdateDto updateDto) {
         short defaultSplitPercentageIncrBy = (short) (toUpdate.getSplitPercentage() - updateDto.getSplitPercentage());
-        updateDefaultSplit(toUpdate.getAccountId(), defaultSplitPercentageIncrBy);
+        adjustDefaultSplitPercentage(toUpdate.getAccountId(), defaultSplitPercentageIncrBy);
 
         Account account = accountReadService.getById(toUpdate.getAccountId());
         double splitTheoreticalAmount = SplitUtils.computeSplitAmount(account.getWealth(), updateDto.getSplitPercentage());
@@ -307,11 +303,7 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
     @Transactional(rollbackFor = Exception.class)
     @Override
     protected void doDelete(Split entity) {
-        // FIXME: The available amount is not updated at all, meaning that
-        //  on delete the total splits available amounts sum does not reflect
-        //  account's declared wealth. Need to move split amount to the default split
-        //  as well.
-        updateDefaultSplit(entity.getAccountId(), entity.getSplitPercentage());
+        reclaimSplitAmountsToDefault(entity);
     }
 
     /**
@@ -320,16 +312,16 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
      * and its theoretical amount based on the updated percentage.
      *
      * @param accountId - the account id which default split belongs to
-     * @param updateBy - the percentage amount to increase/decrease by.
+     * @param percentageAdjustBy - the percentage amount to increase/decrease by.
      *  Negative values are expected here as well to decrease default split
      *  allocated percentage
      */
     @Transactional(rollbackFor = Exception.class)
-    private void updateDefaultSplit(int accountId, short updateBy) {
+    private void adjustDefaultSplitPercentage(int accountId, short percentageAdjustBy) {
         // TODO: reads on this table must obtain a write lock
-        Split defaultSplit = getDefaultSplitByAccountId(accountId);
+        Split defaultSplit = splitReadService.getDefaultSplitByAccountId(accountId);
 
-        short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + updateBy);
+        short updatedDefaultSplitPercentage = (short) (defaultSplit.getSplitPercentage() + percentageAdjustBy);
 
         defaultSplit.setSplitPercentage(updatedDefaultSplitPercentage);
 
@@ -339,10 +331,35 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         defaultSplit.setTheoreticalAmount(updatedDefaultSplitTheoreticalAmount);
     }
 
-    private Split getDefaultSplitByAccountId(Integer accountId) {
-        return ((SplitRepository) repository).findByAccountIdAndIsDefaultTrue(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Default split", "account", accountId.toString()));
+    /**
+     * Reclaims the amounts from another split. This operation is most likely to happen
+     * before split deletion.
+     *
+     * @param toReclaimFrom the account to reclaim the amounts from
+     */
+    @Transactional(rollbackFor = Exception.class)
+    private void reclaimSplitAmountsToDefault(Split toReclaimFrom) {
+        Integer accountId = toReclaimFrom.getAccountId();
+        short toReclaimPercentage = toReclaimFrom.getSplitPercentage();
+        Double toReclaimAmount = toReclaimFrom.getAvailableAmount();
 
+        Split defaultSplit = splitReadService.getDefaultSplitByAccountId(accountId);
+
+        short previousPercentage = defaultSplit.getSplitPercentage();
+        short updatedPercentage = (short) (defaultSplit.getSplitPercentage() + toReclaimPercentage);
+        defaultSplit.setSplitPercentage(updatedPercentage);
+
+        Double previousAvailableAmount = defaultSplit.getAvailableAmount();
+        Double updatedAvailableAmount = defaultSplit.getAvailableAmount() + toReclaimAmount;
+        defaultSplit.setAvailableAmount(updatedAvailableAmount);
+
+        Double previousTheoreticalAmount = defaultSplit.getTheoreticalAmount();
+        Double updatedTheoreticalAmount = SplitUtils.computeSplitAmount(defaultSplit.getAccount().getWealth(), updatedPercentage);
+        defaultSplit.setTheoreticalAmount(updatedTheoreticalAmount);
+
+        repository.saveAndFlush(defaultSplit);
+
+        logger.info("ReclaimSplitAmountsToDefault ::: Reclaimed all amounts from split {}.\n\tPercentage: {}, was {}\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", toReclaimFrom.getId(), updatedPercentage, previousPercentage, updatedTheoreticalAmount, previousTheoreticalAmount, updatedAvailableAmount, previousAvailableAmount);
     }
 }
 

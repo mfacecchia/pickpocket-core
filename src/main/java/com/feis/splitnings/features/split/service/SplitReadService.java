@@ -40,4 +40,8 @@ public class SplitReadService {
                 () -> new ResourceNotFoundException(resourceName, id.toString()));
     }
 
+    public Split getDefaultSplitByAccountId(Integer accountId) {
+        return splitRepository.findByAccountIdAndIsDefaultTrue(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Default split", "account", accountId.toString()));
+    }
 }

@@ -98,10 +98,12 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
             Double splitAvailableAmount = SplitUtils.computeSplitAmount(topUpAmount, splitPercentage, splitPreviousAvailableAmount);
             split.setAvailableAmount(splitAvailableAmount);
 
-            repository.saveAndFlush(split);
-
             logger.info("TopUpByAmountAndAccountId ::: Updated split {} amounts.\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", split.getId(), splitTheoreticalAmount, splitPreviousTheoreticalAmount, splitAvailableAmount, splitPreviousAvailableAmount);
         });
+
+        repository.saveAllAndFlush(accountSplits);
+
+        logger.info("TopUpByAmountAndAccountId ::: Updated all {} splits amounts.", accountSplits.size());
     }
 
     /**
@@ -343,16 +345,21 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
 
         Split defaultSplit = splitReadService.getDefaultSplitByAccountId(accountId);
 
+        short previousPercentage = defaultSplit.getSplitPercentage();
         short updatedPercentage = (short) (defaultSplit.getSplitPercentage() + toReclaimPercentage);
         defaultSplit.setSplitPercentage(updatedPercentage);
 
+        Double previousAvailableAmount = defaultSplit.getAvailableAmount();
         Double updatedAvailableAmount = defaultSplit.getAvailableAmount() + toReclaimAmount;
         defaultSplit.setAvailableAmount(updatedAvailableAmount);
 
-        Double updatedTheoreticalAmount = SplitUtils.computeSplitAmount(defaultSplit.getAccount().getId(), updatedPercentage);
+        Double previousTheoreticalAmount = defaultSplit.getTheoreticalAmount();
+        Double updatedTheoreticalAmount = SplitUtils.computeSplitAmount(defaultSplit.getAccount().getWealth(), updatedPercentage);
         defaultSplit.setTheoreticalAmount(updatedTheoreticalAmount);
 
         repository.saveAndFlush(defaultSplit);
+
+        logger.info("ReclaimSplitAmountsToDefault ::: Reclaimed all amounts from split {}.\n\tPercentage: {}, was {}\n\tTheoretical amount: {}, was {}\n\tAvailable amount: {}, was {}", toReclaimFrom.getId(), updatedPercentage, previousPercentage, updatedTheoreticalAmount, previousTheoreticalAmount, updatedAvailableAmount, previousAvailableAmount);
     }
 }
 

@@ -51,6 +51,12 @@ public class AccountIssuedPaycheckOrchestrator {
         return issuedPaycheckService.create(issuedPaycheckCreateDto);
     }
 
+    /**
+     * Validates whether the defined split exists in the
+     * provided account.
+     *
+     * @throws ResourceNotFoundException if the split does not exist
+     */
     private void assertSplitInAccount(Integer accountId, Integer splitId) {
         splitReadService.getByIdAndAccountId(splitId, accountId);
     }

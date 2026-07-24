@@ -149,6 +149,26 @@ public class SplitService extends AbstractService<Split, SplitDto, SplitCreateDt
         logger.info("ChargeSplit ::: Updated split {} available amount to {}. Was {}", split.getId(), split.getAvailableAmount(), previousAvailableAmount);
     }
 
+    public void transferAmount(Integer fromSplitId, Integer toSplitId, Double transferAmount) {
+        Integer jwtUserId = SecurityUtils.getJwtUserId();
+
+        Split fromSplit = splitReadService.getById(fromSplitId);
+        Split toSplit = splitReadService.getById(toSplitId);
+
+        permissionChecker.checkUpdatePermission(jwtUserId, fromSplit);
+        permissionChecker.checkUpdatePermission(jwtUserId, toSplit);
+
+        Double fromSplitAvailableAmount = fromSplit.getAvailableAmount();
+        fromSplit.setAvailableAmount(fromSplitAvailableAmount - transferAmount);
+
+        Double toSplitAvailableAmount = toSplit.getAvailableAmount();
+        toSplit.setAvailableAmount(toSplitAvailableAmount + transferAmount);
+
+        repository.saveAllAndFlush(List.of(fromSplit, toSplit));
+
+        logger.info("TransferAmount ::: Transfered {} from split {} to split {}", transferAmount, fromSplitId, toSplitId);
+    }
+
     /**
      * Updates theoretical amount for all the
      * splits in an account based on the up-to-date account wealth

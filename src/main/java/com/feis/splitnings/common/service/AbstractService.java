@@ -178,7 +178,7 @@ public abstract class AbstractService<ENTITY extends BaseAuditingEntity & Identi
 
     // Override this if you expect filtering based on
     // user roles or so
-    protected  List<ENTITY> doFilter(List<ENTITY> entityPage) {
+    protected List<ENTITY> doFilter(List<ENTITY> entityPage) {
         if (entityPage == null) {
             return new ArrayList<>();
         }

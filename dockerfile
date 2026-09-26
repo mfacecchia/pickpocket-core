@@ -13,7 +13,7 @@ FROM eclipse-temurin:21-noble AS run
 
 WORKDIR /app
 
-COPY --from=build /app/target/splitnings-1.0-SNAPSHOT.war ./splitnings.war
+COPY --from=build /app/target/splitnings-1.0a.war ./pickpocket.war
 
-ENTRYPOINT [ "java", "-jar", "/app/splitnings.war" ]
+ENTRYPOINT [ "java", "-jar", "/app/pickpocket.war" ]
 

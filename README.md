@@ -1,4 +1,4 @@
-# Splitnings
+# PickPocket Core
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ you may want to follow to keep the whole codebase styling consistent.
 ## 2.0 Technologies
 
 ![Java 21](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Maven 3.9.9](https://img.shields.io/badge/apache_maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
+![Maven 3.9.11 (project wrapper)](https://img.shields.io/badge/apache_maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
 ![Spring Boot 3.5.7](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 
 ## 3.0 Features
@@ -32,5 +32,5 @@ your preference, and you'll be good to go!
 ```zsh
 chmod +x mvnw && \
 ./mvnw clean install && \
-java -jar target/splitnings-1.0-SNAPSHOT.war
+java -jar target/splitnings-1.0a.war
 ```

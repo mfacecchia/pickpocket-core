@@ -11,9 +11,9 @@
 
   <groupId>com.feis</groupId>
   <artifactId>splitnings</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0a</version>
   <packaging>war</packaging>
-  <name>splitnings</name>
+  <name>PickPocket</name>
   <description>Web application built using Feis Archetype</description>
 
   <developers>

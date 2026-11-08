@@ -10,6 +10,8 @@ import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -44,6 +46,7 @@ public class Purchase extends BaseEntity {
     @Column(name = "account_id", nullable = false)
     private Integer accountId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private PurchaseCategory category;
 

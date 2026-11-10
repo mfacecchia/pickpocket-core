@@ -1,6 +1,7 @@
 package com.feis.splitnings.features.user.data;
 
 import com.feis.splitnings.common.data.entity.BaseEntity;
+import com.feis.splitnings.security.utils.SecurityUtils;
 
 import java.time.Instant;
 
@@ -37,5 +38,16 @@ public class User extends BaseEntity {
 
     @Column(name = "last_login", nullable = false)
     private Instant lastLogin;
+
+    @Override
+    public void prePersist() {
+        // System user
+        if (SecurityUtils.getJwtDto().getUserId() == null) {
+            this.createdBy = "-1";
+        } else {
+            this.createdBy = SecurityUtils.getJwtUserId().toString();
+        }
+        this.createdDate = Instant.now();
+    }
 }
 
